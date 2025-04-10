@@ -39,6 +39,8 @@ dependencies {
 	
 	implementation 'org.apache.poi:poi:5.2.3'
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
+	implementation 'org.modelmapper:modelmapper:3.2.0'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -48,7 +50,7 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	// Tomcat (provided scope in Maven becomes 'providedRuntime' in Gradle)
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    runtimeOnly 'org.springframework.boot:spring-boot-starter-tomcat'
 	
 }
 
@@ -64,12 +66,3 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-
-profiles {
-    dev {
-        spring.profiles.active = 'dev'
-    }
-    prod {
-        spring.profiles.active = 'prod'
-    }
-}

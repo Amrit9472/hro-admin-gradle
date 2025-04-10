@@ -26,17 +26,14 @@ logging:
 project:
   image: images/
   file:
-    upload-dir: C:/Users/edasadmin/Desktop/document/Aadhaar_Upload
+    upload-dir: C:/Users/Bot_25/Desktop/Documents/AadharFileUpload
 
 cors:
    allowed:
     origins: 
       - http://localhost:3001
       
-app:
-  jwt-secret: "daf66e01593f61a15b857cf433aae03a005812b31234e149036bcc8dee755dbb"
-  jwt-expiration-milliseconds: 604800000
 
 
 server:
-  port: 8080
+  port: 8082
