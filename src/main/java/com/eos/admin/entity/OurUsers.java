@@ -21,19 +21,15 @@ public class OurUsers implements UserDetails {
     
 	@Id 
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
-	
-	private String email;
-	
-	private String name;
-	
-	private String password;
-	
-	private String city;
-	
-	private String role;
-	
-	private String process;
+	private Integer id;	
+	private String email;	
+	private String name;	
+	private String password;	
+	private String city;	
+	private String role;	
+	private String process;	
+	private String processCode;
+	private String uniqueCode;
 	
 	
 	

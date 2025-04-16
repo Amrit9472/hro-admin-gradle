@@ -53,7 +53,14 @@ public class UserManagementService {
 			ourUsers.setCity(registrationRequest.getCity());
 			ourUsers.setRole(registrationRequest.getRole());
 			ourUsers.setName(formattedString(registrationRequest.getName()));
-			ourUsers.setProcess(registrationRequest.getProcess().trim().toUpperCase());
+			String processName = registrationRequest.getProcess().trim().toUpperCase();
+			String processCode = registrationRequest.getProcessCode().trim();
+			ourUsers.setProcess(processName);
+			ourUsers.setProcessCode(processCode);
+			
+			String uniqueCode = processName +"-"+processCode;
+			ourUsers.setUniqueCode(uniqueCode);
+			
 			ourUsers.setPassword(passwordEncode.encode(registrationRequest.getPassword()));
 
 			OurUsers ourUsersResult = usersRepository.save(ourUsers);
@@ -80,13 +87,14 @@ public class UserManagementService {
 			response.setStatusCode(200);
 			response.setToken(jwt);
 			response.setRole(user.getRole());
-			response.setProcess(user.getProcess());
+//			response.setProcess(user.getProcess());
 			response.setName(user.getName());
 			response.setEmail(user.getEmail());
 			response.setRefreshToken(refreshToken);
 			response.setCity(user.getCity());
 			response.setExpirationTime("24Hrs");
 			response.setMessage("SuccessFull login ");
+			response.setUniqueCode(user.getUniqueCode());
 		} catch (Exception e) {
 			response.setStatusCode(500);
 			response.setMessage("Incorrect Password");

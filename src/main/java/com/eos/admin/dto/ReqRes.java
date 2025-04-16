@@ -25,6 +25,8 @@ public class ReqRes {
 	private String email;
 	private String password;
 	private String  process;
+	private String processCode;
+	private String uniqueCode;
 	private OurUsers ourUsers;
 	private List<OurUsers> ourUserList;
 

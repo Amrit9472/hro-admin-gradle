@@ -101,35 +101,35 @@ public class Employee {
 	@OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private EmployeeStatusDetails employeeStatusDetails;
 	
-	@Column(name = "initial_status")
-	private String initialStatus;
+//	@Column(name = "initial_status")
+//	private String initialStatus;
+//	
+//	@Column(name = "processes_status")
+//	private String processesStatus;
+//	
+//	@Column(name = "hr_status")
+//	private String hrStatus;
 	
-	@Column(name = "processes_status")
-	private String processesStatus;
+//	@Column(name = "manager_status")
+//	private String managerStatus;
 	
-	@Column(name = "hr_status")
-	private String hrStatus;
+//	@Column(name = "last_Interview_Assin")
+//	private String lastInterviewAssin;
+//	
+//	@Column(name = "reMarksByHr")
+//	private String reMarksByHr;
 	
-	@Column(name = "manager_status")
-	private String managerStatus;
+//	@Column(name = "reMarksByManager")
+//	private String reMarksByManager;
 	
-	@Column(name = "last_Interview_Assin")
-	private String lastInterviewAssin;
-	
-	@Column(name = "reMarksByHr")
-	private String reMarksByHr;
-	
-	@Column(name = "reMarksByManager")
-	private String reMarksByManager;
-	
-	@Column(name = "profileScreenRemarks")
-	private String profileScreenRemarks;
+//	@Column(name = "profileScreenRemarks")
+//	private String profileScreenRemarks;
 	
 	@Column(name = "work_Exp",nullable = false)
 	private String workExp;
 	
-	@Column(name = "client_Round")
-	private String clientRound;
+//	@Column(name = "client_Round")
+//	private String clientRound;
 	
 	@PrePersist
 	protected void onCreate() {

@@ -2,7 +2,7 @@ spring:
   application:
     name: ''
   datasource:
-    url: jdbc:mysql://localhost:3306/hr_db
+    url: jdbc:mysql://localhost:3306/eos_db
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
