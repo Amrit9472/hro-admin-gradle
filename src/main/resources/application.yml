@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: ''
+  datasource:
+    url: jdbc:mysql://localhost:3306/eos_db
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type: TRACE
+
+project:
+  image: images/
+  file:
+    upload-dir: C:/Users/Amrit Raj Singh/Desktop/Java Bundle
+
+cors:
+   allowed:
+    origins: 
+      - http://localhost:5173
+      
+
+
+server:
+  port: 8082
