@@ -32,19 +32,19 @@ public interface EmployeeService {
 
 	boolean checkDuplicateAdhaarNo(String aadharNumber);
 
-	List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig();
+	List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location);
 
 	void updateRemarks(Long employeeId, StatusRequestDTO statusRequestDTO, RemarksType remarksType);
 
 	List<EmployeeStatusHistroyDTO> getListOfStatusHistoryRecords(Long employeeId);
 
-	List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage();
+	List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location);
 
 	List<RejectPageEmployeeDTO> getListOfEmployeeRejectedByManager(String location);
 
 	void assignInterviewProcessFromRejectPage(Long employeeId, StatusRequestDTO statusRequestDTO);
 
-	List<SelectedEmployeeDTO> getAllSelectedInterviewList();
+	List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location);
 
 	List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location);
 

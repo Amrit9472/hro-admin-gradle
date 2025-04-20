@@ -91,11 +91,11 @@ public class EmployeeController {
 		}
 	}
 
-	@GetMapping("/listOfEmpPorfileScreaning")
-	public ResponseEntity<List<ProfileScreaningResponseDto>> getListOfEmployeesProfileScreaning() {
+	@GetMapping("/listOfEmpPorfileScreaning/{location}")
+	public ResponseEntity<List<ProfileScreaningResponseDto>> getListOfEmployeesProfileScreaning(@PathVariable("location") String location) {
 		log.info("Request received to get the list of employees for profile screening.");
 		try {
-			List<ProfileScreaningResponseDto> response = employeeService.getListOfEmployeesOnProfileScreanig();
+			List<ProfileScreaningResponseDto> response = employeeService.getListOfEmployeesOnProfileScreanig(location);
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
 			log.error("Error occurred while fetching employees for profile screening: ", e);
@@ -159,11 +159,11 @@ public class EmployeeController {
 
 	}
 
-	@GetMapping("/listOfEmpOnSchedulePage")
-	public ResponseEntity<?> getListOfEmployeeOnSchedulePage() {
+	@GetMapping("/listOfEmpOnSchedulePage/{location}")
+	public ResponseEntity<?> getListOfEmployeeOnSchedulePage(@PathVariable("location") String location ) {
 		try {
 			log.info("Request Recive for featch list of employee for schedule Interview Page");
-			List<ScheduleInterviewPageRequestDTO> request = employeeService.getListOfEmployeesOnScheduleInterviewPage();
+			List<ScheduleInterviewPageRequestDTO> request = employeeService.getListOfEmployeesOnScheduleInterviewPage(location);
 			return ResponseEntity.ok(request);
 		} catch (Exception e) {
 			log.error("Error occurred while fetching employee schedule interview page ");
@@ -225,11 +225,11 @@ public class EmployeeController {
 		}
 	}
 
-	@GetMapping("/selectEmployee")
-	public ResponseEntity<?> getListOfEmployeeSelected() {
+	@GetMapping("/selectEmployee/{location}")
+	public ResponseEntity<?> getListOfEmployeeSelected(@PathVariable("location") String location) {
 		try {
 			log.info("Fetching list of selected employees...");
-			List<SelectedEmployeeDTO> response = employeeService.getAllSelectedInterviewList();
+			List<SelectedEmployeeDTO> response = employeeService.getAllSelectedInterviewList(location);
 	        log.info("Successfully fetched {} selected employees", response.size());
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {

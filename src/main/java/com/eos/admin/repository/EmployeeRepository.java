@@ -19,8 +19,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query("SELECT e.id, e.fullName, e.email, e.jobProfile, e.mobileNo, e.permanentAddress, e.gender, e.creationDate "
 			+ "FROM Employee e INNER JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
-			+ "WHERE esd.initialStatus = 'Active' AND esd.hrStatus IS NULL")
-	List<Object[]> getListOfEmployeeOnProfileScreening();
+			+ "WHERE esd.initialStatus = 'Active' AND esd.hrStatus IS NULL AND e.appliedlocation = :location")
+	List<Object[]> getListOfEmployeeOnProfileScreening(@Param("location") String location);
 
 	@Query("SELECT e.id, e.fullName, e.aadhaarNumber, e.email, e.creationDate, sh.status, sh.changesDateTime ,sh.hrName,sh.remarksOnEveryStages "
 			+ "FROM Employee e " + "JOIN StatusHistory sh ON e.id = sh.employee.id " + "WHERE e.id = :id")
@@ -28,8 +28,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query("SELECT e.id, e.fullName, e.email, e.gender, e.mobileNo, e.creationDate "
 			+ "FROM Employee e JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
-			+ "WHERE esd.hrStatus = 'Select' AND esd.processesStatus IS NULL")
-	List<Object[]> getListOfEmployeeSechedulePage();
+			+ "WHERE esd.hrStatus = 'Select' AND esd.processesStatus IS NULL AND e.appliedlocation = :location")
+	List<Object[]> getListOfEmployeeSechedulePage(@Param("location") String location);
 
 	@Query("SELECT e.id , e.fullName,e.email, e.jobProfile,creationDate  "
 			+ "FROM Employee e JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
@@ -38,8 +38,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(value = "SELECT e.id,e.fullName,e.email,e.mobileNo,e.gender,e.creationDate,esd.profileScreenRemarks,esd.remarksByHr,esd.remarksByManager "
 			+ "FROM Employee e " + "JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
-			+ "WHERE esd.managerStatus = 'Select'")
-	List<Object[]> getSelectedEmployeeDetails();
+			+ "WHERE esd.managerStatus = 'Select' AND e.appliedlocation = :location")
+	List<Object[]> getSelectedEmployeeDetails(@Param("location") String location);
 
 	@Query("SELECT e.id, e.fullName, e.email, e.gender, e.mobileNo, e.creationDate "
 			+ "FROM Employee e JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "

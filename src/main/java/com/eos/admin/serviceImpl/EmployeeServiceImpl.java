@@ -138,11 +138,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig() {
+	public List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location) {
 		log.info("Entering getListOfEmployeesOnProfileScreaning method.");
 		List<ProfileScreaningResponseDto> employees = new ArrayList<>();
 		try {
-			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening();
+			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location);
 			if (response == null || response.isEmpty()) {
 				log.warn("No employee data found for profile screening.");
 				return employees;
@@ -364,11 +364,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage() {
+	public List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location) {
 		// TODO Auto-generated method stub
 		log.info("Request for get list of Employee on schedule Interview page from Empoloyee serviceImp");
 		try {
-			List<Object[]> repositoryResponse = employeeRepository.getListOfEmployeeSechedulePage();
+			List<Object[]> repositoryResponse = employeeRepository.getListOfEmployeeSechedulePage(location);
 			List<ScheduleInterviewPageRequestDTO> response = new ArrayList<>();
 			for (Object[] repositoryResponses : repositoryResponse) {
 				ScheduleInterviewPageRequestDTO scheduleInterviewPageRequestDTO = new ScheduleInterviewPageRequestDTO();
@@ -444,10 +444,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<SelectedEmployeeDTO> getAllSelectedInterviewList() {
+	public List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location) {
 		try {
 			log.info("Getting selected employee details from repository...");
-			List<Object[]> employeeObjects = employeeRepository.getSelectedEmployeeDetails();
+			List<Object[]> employeeObjects = employeeRepository.getSelectedEmployeeDetails(location);
 
 			List<SelectedEmployeeDTO> selectedEmployees = new ArrayList<>();
 
