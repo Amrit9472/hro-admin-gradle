@@ -240,11 +240,12 @@ public class EmployeeController {
 
 	}
 	
-	@GetMapping("/rejectedbyProfileScreaning")
-	public ResponseEntity<?> getListRejectedOnProfileScreanPage() {
+	@GetMapping("/rejectedbyProfileScreaning/{location}")
+	public ResponseEntity<?> getListRejectedOnProfileScreanPage(@PathVariable("location") String location) {
+		
 		try {
-			log.info("Fetching list of rejected on profile Screaning employees...");
-		 List<ProfileScreanRejectedDTO> response = employeeService.getListOfProfileScreaningRejected();	
+			log.info("Fetching list of rejected on profile Screaning employ ees...");
+		 List<ProfileScreanRejectedDTO> response = employeeService.getListOfProfileScreaningRejected(location);	
 		 log.info("Successfully fetched {} rected  employees", response.size());
 		 return ResponseEntity.ok(response);
 		}catch (Exception e) {
@@ -253,6 +254,23 @@ public class EmployeeController {
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
+	}
+	
+	@PutMapping("/submitResponseForReScreening/{employeeId}")
+	public ResponseEntity<?> submitResponseForReScreeningProfile(
+	        @PathVariable("employeeId") Long employeeId,
+	        @RequestBody StatusRequestDTO statusRequestDTO) {
+	    try {
+	        log.info("API called to submit re-screening response for employeeId: {}", employeeId);
+
+	        EmployeeDto updatedEmployee = employeeService.submitResponseForReScreeningProfile(employeeId, statusRequestDTO);
+
+	        return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
+	    } catch (Exception e) {
+	        log.error("Failed to submit response for re-screening for employeeId: {}", employeeId, e);
+	        return new ResponseEntity<>("Failed to submit response for re-screening: " + e.getMessage(),
+	                HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
 	
 	@GetMapping("/getInfoOfEmployee")
@@ -373,6 +391,7 @@ public class EmployeeController {
         workbook.write(response.getOutputStream());
         workbook.close();
     }
+	/**
 	@GetMapping("/getScheduleInterviewManager/{uniqueCodeProcess}")
 	public ResponseEntity<?> getScheduleInterviewManager(@PathVariable("uniqueCodeProcess") String uniqueCodeProcess){
 		try {
@@ -385,4 +404,5 @@ public class EmployeeController {
 	
 		
 	}
+	*/
 }

@@ -46,7 +46,7 @@ public interface EmployeeService {
 
 	List<SelectedEmployeeDTO> getAllSelectedInterviewList();
 
-	List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected();
+	List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location);
 
 	List<EmployeeInformationDTO> getEmployeeInformation();
 
@@ -61,4 +61,6 @@ public interface EmployeeService {
 	List<ManagerPageResponseDTO> getScheduleInterviewManagerPage(String uniqueCodeProcess);
 
 	List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location);
+
+	EmployeeDto submitResponseForReScreeningProfile(Long employeeId, StatusRequestDTO statusRequestDTO);
 }

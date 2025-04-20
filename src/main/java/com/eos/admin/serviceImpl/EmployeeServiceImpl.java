@@ -420,19 +420,27 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public void assignInterviewProcessFromRejectPage(Long employeeId, StatusRequestDTO statusRequestDTO) {
-		// TODO Auto-generated method stub
-		Employee employee = employeeRepository.findById(employeeId)
-				.orElseThrow(() -> new RuntimeException("Employee not found"));
-		InterviewProcesses interviewProcesses = new InterviewProcesses();
-		interviewProcesses.setEmployee(employee);
+	    EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository
+	        .findByEmployeeId(employeeId)
+	        .orElseThrow(() -> new RuntimeException("EmployeeStatusDetails not found"));
 
-		EmployeeStatusDetails employeeStatusDetails = new EmployeeStatusDetails();
-		employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
-		employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
+	    // Get the associated employee
+	    Employee employee = employeeStatusDetails.getEmployee();
 
-		InterviewProcesses savedInterviewProcess = interviewProcessRepository.save(interviewProcesses);
-		setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, savedInterviewProcess);
+	    // Create and associate InterviewProcesses
+	    InterviewProcesses interviewProcesses = new InterviewProcesses();
+	    interviewProcesses.setEmployee(employee);
 
+	    // Update and save the employee status
+	    employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
+	    employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
+	    employeeStatusDetailsRepository.save(employeeStatusDetails);
+
+	    // Save interview process
+	    InterviewProcesses savedInterviewProcess = interviewProcessRepository.save(interviewProcesses);
+
+	    // Set status history
+	    setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, savedInterviewProcess);
 	}
 
 	@Override
@@ -479,10 +487,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected() {
+	public List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location) {
 		try {
 			log.info("Fetching profile screening rejected employee data from repository...");
-			List<Object[]> repoResponse = employeeRepository.getListOfProfileScreaningPage();
+			List<Object[]> repoResponse = employeeRepository.getListOfProfileScreaningPage(location);
 			List<ProfileScreanRejectedDTO> rejectedList = new ArrayList<>();
 
 			for (Object[] result : repoResponse) {
@@ -1018,4 +1026,43 @@ public class EmployeeServiceImpl implements EmployeeService {
 		return null;
 	}
 
+	@Override
+	public EmployeeDto submitResponseForReScreeningProfile(Long employeeId, StatusRequestDTO statusRequestDTO) {
+	    try {
+	        log.info("Submitting response for re-screening for employeeId: {}", employeeId);
+
+	        // Fetch employee status details
+	        EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository
+	            .findByEmployeeId(employeeId)
+	            .orElseThrow(() -> {
+	                log.error("EmployeeStatusDetails not found for employeeId: {}", employeeId);
+	                return new RuntimeException("EmployeeStatusDetails not found");
+	            });
+
+	        // Clear HR status
+	        employeeStatusDetails.setHrStatus(null);
+	        employeeStatusDetailsRepository.save(employeeStatusDetails);
+	        log.info("Cleared HR status for employeeId: {}", employeeId);
+
+	        // Update status history and remarks
+	        setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, null);
+	        log.info("Status history recorded for employeeId: {}", employeeId);
+
+	        // Fetch and return updated EmployeeDto
+	        Employee updatedEmployee = employeeRepository.findById(employeeId)
+	            .orElseThrow(() -> {
+	                log.error("Employee not found with ID: {}", employeeId);
+	                return new RuntimeException("Employee not found");
+	            });
+
+	        EmployeeDto employeeDto = modelMapper.map(updatedEmployee, EmployeeDto.class);
+	        log.info("Returning updated EmployeeDto for employeeId: {}", employeeId);
+
+	        return employeeDto;
+
+	    } catch (Exception e) {
+	        log.error("Error occurred while submitting response for re-screening for employeeId: {}", employeeId, e);
+	        throw new RuntimeException("Failed to submit response for re-screening", e);
+	    }
+	}
 }
