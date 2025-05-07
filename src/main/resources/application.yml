@@ -26,7 +26,7 @@ logging:
 project:
   image: images/
   file:
-    upload-dir: C:/Users/Amrit Raj Singh/Desktop/Java Bundle
+    upload-dir: C:/Users/Bot_25/Desktop/Documents/AadharFileUpload
 
 cors:
    allowed:

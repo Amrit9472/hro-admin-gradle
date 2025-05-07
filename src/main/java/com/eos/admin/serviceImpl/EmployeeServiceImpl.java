@@ -30,6 +30,7 @@ import com.eos.admin.dto.EmployeeExcelReportDto;
 import com.eos.admin.dto.EmployeeExcelReportInSequenceDto;
 import com.eos.admin.dto.EmployeeInformationDTO;
 import com.eos.admin.dto.EmployeeStatusHistroyDTO;
+import com.eos.admin.dto.LanguageDTO;
 import com.eos.admin.dto.ManagerPageResponseDTO;
 import com.eos.admin.dto.ProfileScreanRejectedDTO;
 import com.eos.admin.dto.ProfileScreaningResponseDto;
@@ -42,6 +43,7 @@ import com.eos.admin.dto.StatusRequestDTO;
 import com.eos.admin.entity.Employee;
 import com.eos.admin.entity.EmployeeStatusDetails;
 import com.eos.admin.entity.InterviewProcesses;
+import com.eos.admin.entity.Language;
 import com.eos.admin.entity.StatusHistory;
 import com.eos.admin.enums.RemarksType;
 import com.eos.admin.exception.DuplicateRecordException;
@@ -50,12 +52,15 @@ import com.eos.admin.exception.ResourceNotFoundException;
 import com.eos.admin.repository.EmployeeRepository;
 import com.eos.admin.repository.EmployeeStatusDetailsRepository;
 import com.eos.admin.repository.InterviewProcessRepository;
+import com.eos.admin.repository.LanguagesRepository;
 import com.eos.admin.repository.StatusHistoryRepository;
 import com.eos.admin.service.EmployeeService;
 import com.eos.admin.service.FileService;
 import com.eos.admin.service.StatusHistoryService;
+import com.google.zxing.Result;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -70,13 +75,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 	private ModelMapper modelMapper;
 	private EmployeeStatusDetailsRepository employeeStatusDetailsRepository;
 	private InterviewProcessRepository interviewProcessRepository;
+	private LanguagesServiceImpl languagesServiceImpl;
+	private LanguagesRepository languagesRepository;
 
 	@Autowired
 	public EmployeeServiceImpl(EmployeeRepository employeeRepository, FileService fileSercice,
 			StatusHistoryService statusHistoryService, StatusHistoryRepository statusHistoryRepository,
 			NotificationServiceImple notificationServiceImple, ModelMapper modelMapper,
 			EmployeeStatusDetailsRepository employeeStatusDetailsRepository,
-			InterviewProcessRepository interviewProcessRepository) {
+			InterviewProcessRepository interviewProcessRepository,
+			LanguagesServiceImpl languagesServiceImpl,
+			LanguagesRepository languagesRepository) {
 		super();
 		this.employeeRepository = employeeRepository;
 		this.fileSercice = fileSercice;
@@ -86,9 +95,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 		this.modelMapper = modelMapper;
 		this.employeeStatusDetailsRepository = employeeStatusDetailsRepository;
 		this.interviewProcessRepository = interviewProcessRepository;
+		this.languagesServiceImpl = languagesServiceImpl;
+		this.languagesRepository= languagesRepository;
 	}
 
 	@Override
+	@Transactional
 	public EmployeeDto createEmployee(EmployeeDto employeeDto, MultipartFile file, String path) throws IOException {
 
 		// Check for duplicate email
@@ -114,13 +126,20 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 		// Map DTO to entity and save
 		Employee employeeEntity = modelMapper.map(employeeDto, Employee.class);
-		log.info("Saving employee entity to the database: {}", employeeEntity);
+
+		// **Crucial Step: Set the employee in each Language object**
+	    if (employeeEntity.getLanguage() != null) {
+	        for (Language language : employeeEntity.getLanguage()) {
+	            language.setEmployee(employeeEntity);
+	        }
+	    }
+	    
 		Employee savedEmployeeEntity = employeeRepository.save(employeeEntity);
 		log.info("Employee entity saved with ID: {}", savedEmployeeEntity.getId());
-
+		
 		// Create initial status and update status
 		statusHistoryService.createInitialStatus(savedEmployeeEntity);
-		updateEmployeeStatus(savedEmployeeEntity);
+//		updateEmployeeStatus(savedEmployeeEntity);
 		log.info("Initial status and employee status updated for employee ID: {}", savedEmployeeEntity.getId());
 
 		// Create EmployeeStatusDetails if needed
@@ -142,14 +161,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 		log.info("Entering getListOfEmployeesOnProfileScreaning method.");
 		List<ProfileScreaningResponseDto> employees = new ArrayList<>();
 		try {
-			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location);
+			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim());
 			if (response == null || response.isEmpty()) {
 				log.warn("No employee data found for profile screening.");
 				return employees;
 			}
 			log.info("Successfully fetched employee data from the repository.");
 			for (Object[] result : response) {
-				if (result == null || result.length != 8) {
+				if (result == null || result.length != 9) {
 					log.warn("Invalid data encountered: skipping incomplete record.");
 					continue; // Skip incomplete records
 				}
@@ -164,6 +183,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 					employee.setPermanentAddress((String) result[5]);
 					employee.setGender((String) result[6]);
 					employee.setCreationDate((Date) result[7]);
+					 String languagesString = (String) result[8];
+		                if (languagesString != null && !languagesString.isEmpty()) {
+		                    List<String> languages = Arrays.asList(languagesString.split(", "));
+		                    employee.setLanguages(languages); // Set the languages to the employee DTO
+		                } else {
+		                    employee.setLanguages(new ArrayList<>()); // No languages available
+		                }
+//					employee.setReadLanguages((List<String>) result[8]);
+//					employee.setWriteLanguages((List<String>) result[9]);
 					employees.add(employee);
 				} catch (NullPointerException e) {
 					log.error("Null value encountered while processing the employee data: " + e.getMessage());
@@ -727,8 +755,20 @@ public class EmployeeServiceImpl implements EmployeeService {
 			List<EmployeeDetailsOnManagerPageDTO> dtoList = new ArrayList<>();
 
 			for (Object[] obj : employeeObjects) {
-				EmployeeDetailsOnManagerPageDTO dto = new EmployeeDetailsOnManagerPageDTO((Long) obj[0],
-						(String) obj[1], (String) obj[2], (String) obj[3], (Date) obj[9] // or convert to java.util.Date
+				EmployeeDetailsOnManagerPageDTO dto = new EmployeeDetailsOnManagerPageDTO(
+						(Long) obj[0],
+						(String) obj[1], 
+						(String) obj[2], 
+						(String) obj[3],
+						(Long)obj[4],
+						(String) obj[5],
+						(String)obj[6],
+						(Date) obj[7]
+						
+						
+						
+								
+						
 				);
 				dtoList.add(dto);
 			}

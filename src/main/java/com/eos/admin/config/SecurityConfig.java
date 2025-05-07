@@ -35,9 +35,11 @@ public class SecurityConfig {
 		httpSecurity.csrf(AbstractHttpConfigurer::disable)
 		.cors(Customizer.withDefaults())
 		.authorizeHttpRequests(Request -> Request.requestMatchers("/auth/**", "/public/**").permitAll().
-				requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
+				requestMatchers("/api/employees/createEmployee").permitAll()
+				.requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
 				.requestMatchers("/user/**").hasAnyAuthority("USER","Manager")
 				.requestMatchers("/api/employees/**").hasAnyAuthority("USER","ADMIN","MANAGER")
+				.requestMatchers("/api/loi/**").hasAnyAuthority("USER","ADMIN","MANAGER")
 				.requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN","USER","Manager")
 				.anyRequest().authenticated())
 		.sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -17,9 +17,22 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	boolean existsByAadhaarNumber(String aadhaarNumber);
 
-	@Query("SELECT e.id, e.fullName, e.email, e.jobProfile, e.mobileNo, e.permanentAddress, e.gender, e.creationDate "
-			+ "FROM Employee e INNER JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
-			+ "WHERE esd.initialStatus = 'Active' AND esd.hrStatus IS NULL AND e.appliedlocation = :location")
+//	@Query("SELECT e.id, e.fullName, e.email, e.jobProfile, e.mobileNo, e.permanentAddress, e.gender, e.creationDate "
+//			+ "FROM Employee e INNER JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
+//			+ "WHERE esd.initialStatus = 'Active' AND esd.hrStatus IS NULL AND e.appliedlocation = :location")
+	@Query(value = "SELECT e.id, e.full_Name, e.email, e.job_Profile, e.mobile_No, e.permanent_Address, e.gender, e.creation_Date, "
+	        + "GROUP_CONCAT(CONCAT(l.language_Name, ' (Read: ', "
+	        + "IF(l.can_Read = 1, 'Yes', 'No'), ', Write: ', "
+	        + "IF(l.can_Write = 1, 'Yes', 'No'), ')') "
+	        + "SEPARATOR ', ') AS languages "
+	        + "FROM Employees e "
+	        + "INNER JOIN Employee_Status_Details esd ON e.id = esd.employee_id "
+	        + "LEFT JOIN Languages l ON e.id = l.employee_id "
+	        + "WHERE esd.initial_Status = 'Active' "
+	        + "AND esd.hr_Status IS NULL "
+	        + "AND e.applied_Location = :location "
+	        + "GROUP BY e.id, e.full_Name, e.email, e.job_Profile, e.mobile_No, "
+	        + "e.permanent_Address, e.gender, e.creation_Date", nativeQuery = true)
 	List<Object[]> getListOfEmployeeOnProfileScreening(@Param("location") String location);
 
 	@Query("SELECT e.id, e.fullName, e.aadhaarNumber, e.email, e.creationDate, sh.status, sh.changesDateTime ,sh.hrName,sh.remarksOnEveryStages "
@@ -38,7 +51,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(value = "SELECT e.id,e.fullName,e.email,e.mobileNo,e.gender,e.creationDate,esd.profileScreenRemarks,esd.remarksByHr,esd.remarksByManager "
 			+ "FROM Employee e " + "JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
-			+ "WHERE esd.managerStatus = 'Select' AND e.appliedlocation = :location")
+			+ "WHERE esd.managerStatus = 'Select' AND e.appliedlocation = :location "
+			+"AND NOT EXISTS (SELECT 1 FROM OurEmployees oe WHERE oe.employee.id = e.id)")
 	List<Object[]> getSelectedEmployeeDetails(@Param("location") String location);
 
 	@Query("SELECT e.id, e.fullName, e.email, e.gender, e.mobileNo, e.creationDate "
@@ -89,8 +103,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	List<Object[]> getScheduleInterviewManagerPage(@Param("uniqueCodeProcess") String uniqueCodeProcess);
 
 	@Query(
-		    value = "SELECT e.id, e.full_name, e.email, e.job_profile, e.mobile_no, e.permanent_address, " +
-		            "e.gender, e.previous_organisation, eps.processes_status, e.creation_date " +
+		    value = "SELECT e.id, e.full_name, e.email, e.job_profile, e.mobile_no, " +
+		            "e.gender, eps.processes_status, e.creation_date " +
 		            "FROM employees e " +
 		            "JOIN employee_status_details eps ON eps.employee_id = e.id " +
 		            "WHERE eps.processes_status = :role AND e.applied_location = :location",
