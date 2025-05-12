@@ -10,10 +10,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.eos.admin.dto.ChangePasswordRequest;
 import com.eos.admin.dto.ReqRes;
 import com.eos.admin.entity.OurUsers;
 import com.eos.admin.jwt.JWTUtilsImpl;
 import com.eos.admin.repository.UsersRepository;
+
 
 @Service
 public class UserManagementService {
@@ -29,6 +31,9 @@ public class UserManagementService {
 
 	@Autowired
 	private JWTUtilsImpl jwtUtilsImpl;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	public ReqRes register(ReqRes registrationRequest) {
 		ReqRes resp = new ReqRes();
@@ -103,6 +108,54 @@ public class UserManagementService {
 		return response;
 	}
 
+	public ReqRes changePassword(ChangePasswordRequest changePasswordRequest) {
+		ReqRes resp = new ReqRes();
+		try {
+			String email = changePasswordRequest.getEmail();
+			String oldPassWord = changePasswordRequest.getOldPassword();
+			String newPassWord = changePasswordRequest.getNewPassword();
+			String confirmPassword = changePasswordRequest.getConfirmPassword();
+			
+			if(email != null && !email.isEmpty() && oldPassWord != null && !oldPassWord.isEmpty() && newPassWord != null && !newPassWord.isEmpty()
+				&& confirmPassword != null && !confirmPassword.isEmpty()) {
+				
+				
+				if (!newPassWord.equals(confirmPassword)) {  // Check if newPassword and confirmPassword match
+	                resp.setStatusCode(400);
+	                resp.setError("New password and confirm password do not match");
+	                return resp;
+	            }
+				
+				Optional<OurUsers> existingUser = usersRepository.findByEmail(email);
+				if(existingUser.isPresent()) {
+					OurUsers user = existingUser.get();
+		               if (passwordEncoder.matches(oldPassWord, user.getPassword())) {
+		                    // Update the password
+		                    user.setPassword(passwordEncoder.encode(newPassWord));
+		                    usersRepository.save(user);
+
+		                    resp.setMessage("Password changed successfully");
+		                    resp.setStatusCode(200);
+		                }else {
+		                    resp.setStatusCode(400);
+		                    resp.setError("Old password is incorrect");
+		                }
+		               }else {
+		                	resp.setStatusCode(404);
+		                	resp.setError("User not Found");
+		                }}else {
+		                    resp.setStatusCode(400);
+		                    resp.setError("All fields are required");
+		                }
+		                	
+		               
+				}catch (Exception e) {
+			        resp.setStatusCode(500);
+			        resp.setError("An error occurred: " + e.getMessage());
+			    }
+
+      return resp;
+	}
 	private String formattedString(String string) {
 
 		if (string != null && !string.isEmpty()) {

@@ -72,16 +72,20 @@ public class EmployeeController {
 
 	@PostMapping("/createEmployee")
 	public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestPart("employee") EmployeeDto employeeDto,
-			@RequestPart("image") MultipartFile image) {
+			@RequestPart("image") List<MultipartFile> images) {
 		log.info("Employee request data recived {}", employeeDto);
-		log.info("Addhaar file from user is recived {}", image);
+		log.info("Addhaar file from user is recived {}", images);
 		try {
-			if (employeeDto == null || image == null || image.isEmpty()) {
-				log.warn("Employee request data not recived {} {}", employeeDto, image);
+			if (employeeDto == null || images == null || images.isEmpty()) {
+				log.warn("Employee request data not recived {} {}", employeeDto, images);
 				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 			}
-			log.info("Received image size: {} bytes", image.getSize());
-			EmployeeDto saveResponse = employeeService.createEmployee(employeeDto, image, path);
+			 for (MultipartFile image : images) {
+		            log.info("Received image size: {} bytes", image.getSize());
+		            // You can process the files here as required
+		        }
+		
+			EmployeeDto saveResponse = employeeService.createEmployee(employeeDto, images, path);
 			log.info("Successfully created employee with ID: {}", saveResponse.getId());
 			return new ResponseEntity<EmployeeDto>(saveResponse, HttpStatus.CREATED);
 

@@ -101,7 +101,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	@Transactional
-	public EmployeeDto createEmployee(EmployeeDto employeeDto, MultipartFile file, String path) throws IOException {
+	public EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> file, String path) throws IOException {
 
 		// Check for duplicate email
 		if (checkDuplicateEmail(employeeDto.getEmail())) {
@@ -115,8 +115,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 		}
 		// Upload the file
 		log.info("Uploading image for Aadhaar number: {}", employeeDto.getAadhaarNumber());
-		String fileName = fileSercice.uploadImage(path, file, employeeDto.getAadhaarNumber());
-		employeeDto.setAadharFilename(fileName);
+		List<String> fileName = fileSercice.uploadImage(path, file, employeeDto.getAadhaarNumber());
+//		employeeDto.setAadharFilename(fileName);
 		log.info("File uploaded successfully with name: {}", fileName);
 
 		// Format and set the full name
@@ -161,7 +161,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 		log.info("Entering getListOfEmployeesOnProfileScreaning method.");
 		List<ProfileScreaningResponseDto> employees = new ArrayList<>();
 		try {
-			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim());
+ 			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim());
 			if (response == null || response.isEmpty()) {
 				log.warn("No employee data found for profile screening.");
 				return employees;
@@ -489,9 +489,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 					selectedEmployee.setMobileNo((Long) result[3]);
 					selectedEmployee.setGender((String) result[4]);
 					selectedEmployee.setCreationDate((Date) result[5]);
-					selectedEmployee.setRemarksByHr((String) result[6]);
-					selectedEmployee.setRemarksByManager((String) result[7]);
-					selectedEmployee.setProfileScreenRemarks((String) result[8]);
+					selectedEmployee.setProfileScreenRemarks((String) result[6]);
+					selectedEmployee.setRemarksByHr((String) result[7]);
+					selectedEmployee.setRemarksByManager((String) result[8]);
 				} catch (ClassCastException | ArrayIndexOutOfBoundsException castEx) {
 					log.error("Error mapping row to DTO. Row: {}, Error: {}", Arrays.toString(result),
 							castEx.getMessage(), castEx);
@@ -530,8 +530,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 					dto.setEmail((String) result[2]);
 					dto.setGender((String) result[3]);
 					dto.setMobileNo((Long) result[4]);
-
 					dto.setCreationDate((Date) result[5]);
+					dto.setProfileScreenRemarks((String) result[6]);
 				} catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
 					log.error("Error mapping profile screen rejected data. Row: {}, Error: {}", Arrays.toString(result),
 							ex.getMessage(), ex);

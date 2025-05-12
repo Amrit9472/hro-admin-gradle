@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eos.admin.dto.ChangePasswordRequest;
 import com.eos.admin.dto.ReqRes;
 import com.eos.admin.serviceImpl.UserManagementService;
 
@@ -38,4 +39,8 @@ public class UserManagementController {
 		return ResponseEntity.ok(userManagementService.getMyProcessName());
 	}
 
+	@PostMapping("/change-password")
+	public ResponseEntity<ReqRes> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest){
+		return ResponseEntity.ok(userManagementService.changePassword(changePasswordRequest));
+	}
 }

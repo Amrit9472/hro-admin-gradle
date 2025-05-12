@@ -26,7 +26,7 @@ import com.eos.admin.enums.RemarksType;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface EmployeeService {
-	EmployeeDto createEmployee(EmployeeDto employeeDto, MultipartFile file, String path) throws IOException;
+	EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> images, String path) throws IOException;
 
 	boolean checkDuplicateEmail(String email);
 

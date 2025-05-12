@@ -55,7 +55,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+"AND NOT EXISTS (SELECT 1 FROM OurEmployees oe WHERE oe.employee.id = e.id)")
 	List<Object[]> getSelectedEmployeeDetails(@Param("location") String location);
 
-	@Query("SELECT e.id, e.fullName, e.email, e.gender, e.mobileNo, e.creationDate "
+	@Query("SELECT e.id, e.fullName, e.email, e.gender, e.mobileNo, e.creationDate , esd.profileScreenRemarks "
 			+ "FROM Employee e JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
 			+ "WHERE esd.hrStatus = 'Reject' AND e.appliedlocation = :location")
 	List<Object[]> getListOfProfileScreaningPage(@Param("location") String location);
