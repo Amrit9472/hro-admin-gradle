@@ -22,11 +22,14 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JWTAuthFilter extends OncePerRequestFilter {
 
-	@Autowired
 	private JWTUtilsImpl jwtUtilsImpl;
-
-	@Autowired
 	private OurUserDetailsServiceImpl ourUserDetailsServiceImpl;
+
+	public JWTAuthFilter(JWTUtilsImpl jwtUtilsImpl, OurUserDetailsServiceImpl ourUserDetailsServiceImpl) {
+		super();
+		this.jwtUtilsImpl = jwtUtilsImpl;
+		this.ourUserDetailsServiceImpl = ourUserDetailsServiceImpl;
+	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

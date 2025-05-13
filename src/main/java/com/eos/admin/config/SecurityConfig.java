@@ -1,6 +1,5 @@
 package com.eos.admin.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,11 +23,20 @@ import com.eos.admin.serviceImpl.OurUserDetailsServiceImpl;
 @EnableWebSecurity
 public class SecurityConfig {
 	
-	@Autowired
+
 	private OurUserDetailsServiceImpl ourUserDetailsServiceImpl;
-	
-	@Autowired
 	private JWTAuthFilter jwtAuthFilter;
+	
+	
+	public SecurityConfig(OurUserDetailsServiceImpl ourUserDetailsServiceImpl, JWTAuthFilter jwtAuthFilter) {
+		super();
+		this.ourUserDetailsServiceImpl = ourUserDetailsServiceImpl;
+		this.jwtAuthFilter = jwtAuthFilter;
+	}
+
+	private static final String ROLE_ADMIN = "ADMIN";
+	private static final String ROLE_USER = "USER";
+	private static final String ROLE_MANAGER = "MANAGER";
 	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -36,11 +44,11 @@ public class SecurityConfig {
 		.cors(Customizer.withDefaults())
 		.authorizeHttpRequests(Request -> Request.requestMatchers("/auth/**", "/public/**").permitAll().
 				requestMatchers("/api/employees/createEmployee").permitAll()
-				.requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
-				.requestMatchers("/user/**").hasAnyAuthority("USER","Manager")
-				.requestMatchers("/api/employees/**").hasAnyAuthority("USER","ADMIN","MANAGER")
-				.requestMatchers("/api/loi/**").hasAnyAuthority("USER","ADMIN","MANAGER")
-				.requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN","USER","Manager")
+				.requestMatchers("/admin/**").hasAnyAuthority(ROLE_ADMIN)
+				.requestMatchers("/user/**").hasAnyAuthority(ROLE_USER,ROLE_MANAGER)
+				.requestMatchers("/api/employees/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)
+				.requestMatchers("/api/loi/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)
+				.requestMatchers("/adminuser/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)
 				.anyRequest().authenticated())
 		.sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.authenticationProvider(authenticationProvider())

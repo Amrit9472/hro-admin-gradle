@@ -1038,7 +1038,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	private void setStatusHistoryRecoredRemarksChecks(Long employeeId, StatusRequestDTO statusRequestDTO,
 			InterviewProcesses savedInterviewProcess) {
-		// TODO Auto-generated method stub
 		Employee employee = employeeRepository.findById(employeeId)
 				.orElseThrow(() -> new RuntimeException("Employee not found"));
 		StatusHistory statusHistory = new StatusHistory();

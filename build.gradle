@@ -44,6 +44,7 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
 	implementation 'org.modelmapper:modelmapper:3.2.0'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	testImplementation 'org.mockito:mockito-core'
 	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -70,4 +71,19 @@ tasks.named('test') {
 }
 
 
-
+sonarqube {
+    properties {
+        property "sonar.projectKey", "hro-admin-restfull-webservice"
+        property "sonar.projectName", "hro-admin-restfull-webservice"
+        property "sonar.host.url", "http://127.0.0.1:9000"
+        property "sonar.token", "sqp_c9ef476937b12453248293f5bf050242e7d7d823"
+        
+         // Main source and binary directories
+        property "sonar.sources", "src/main/java"
+        property "sonar.java.binaries", "build/classes/java/main"
+       
+         // Test source and binary directories
+        property "sonar.tests", "src/test/java"
+        property "sonar.java.test.binaries", "build/classes/java/test"
+    }
+}

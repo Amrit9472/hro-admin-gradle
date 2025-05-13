@@ -2,11 +2,10 @@ package com.eos.admin.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-
-import java.net.URLEncoder;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -18,7 +17,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,10 +32,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.eos.admin.dto.EmployeeDetailsOnManagerPageDTO;
 import com.eos.admin.dto.EmployeeDto;
 import com.eos.admin.dto.EmployeeExcelReportDto;
-import com.eos.admin.dto.EmployeeExcelReportInSequenceDto;
 import com.eos.admin.dto.EmployeeInformationDTO;
 import com.eos.admin.dto.EmployeeStatusHistroyDTO;
-import com.eos.admin.dto.ManagerPageResponseDTO;
 import com.eos.admin.dto.ProfileScreanRejectedDTO;
 import com.eos.admin.dto.ProfileScreaningResponseDto;
 import com.eos.admin.dto.RejectPageEmployeeDTO;
@@ -47,12 +44,10 @@ import com.eos.admin.enums.RemarksType;
 import com.eos.admin.exception.InvalidInputException;
 import com.eos.admin.exception.ResourceNotFoundException;
 import com.eos.admin.service.EmployeeService;
-
+import com.eos.admin.serviceImpl.EmployeeServiceImpl;
 
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @CrossOrigin("http://localhost:5173")
 @Slf4j
@@ -63,15 +58,15 @@ public class EmployeeController {
 	@Value("${project.file.upload-dir}")
 	private String path;
 
-	private EmployeeService employeeService;
+	private EmployeeServiceImpl employeeService;
 
-	public EmployeeController(EmployeeService employeeService) {
+	public EmployeeController(EmployeeServiceImpl employeeService) {
 		super();
 		this.employeeService = employeeService;
 	}
 
 	@PostMapping("/createEmployee")
-	public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestPart("employee") EmployeeDto employeeDto,
+	public ResponseEntity<EmployeeDto> createEmployee( @RequestPart("employee") EmployeeDto employeeDto,
 			@RequestPart("image") List<MultipartFile> images) {
 		log.info("Employee request data recived {}", employeeDto);
 		log.info("Addhaar file from user is recived {}", images);
@@ -87,7 +82,7 @@ public class EmployeeController {
 		
 			EmployeeDto saveResponse = employeeService.createEmployee(employeeDto, images, path);
 			log.info("Successfully created employee with ID: {}", saveResponse.getId());
-			return new ResponseEntity<EmployeeDto>(saveResponse, HttpStatus.CREATED);
+			return new ResponseEntity<>(saveResponse, HttpStatus.CREATED);
 
 		} catch (Exception e) {
 			log.error("Error occurred while creating employee: {}", e.getMessage(), e);
