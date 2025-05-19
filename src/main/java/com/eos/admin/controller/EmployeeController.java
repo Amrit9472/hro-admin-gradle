@@ -44,7 +44,6 @@ import com.eos.admin.enums.RemarksType;
 import com.eos.admin.exception.InvalidInputException;
 import com.eos.admin.exception.ResourceNotFoundException;
 import com.eos.admin.service.EmployeeService;
-import com.eos.admin.serviceImpl.EmployeeServiceImpl;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -58,9 +57,9 @@ public class EmployeeController {
 	@Value("${project.file.upload-dir}")
 	private String path;
 
-	private EmployeeServiceImpl employeeService;
+	private final EmployeeService employeeService;
 
-	public EmployeeController(EmployeeServiceImpl employeeService) {
+	public EmployeeController(EmployeeService employeeService) {
 		super();
 		this.employeeService = employeeService;
 	}
@@ -95,7 +94,7 @@ public class EmployeeController {
 		log.info("Request received to get the list of employees for profile screening.");
 		try {
 			List<ProfileScreaningResponseDto> response = employeeService.getListOfEmployeesOnProfileScreanig(location);
-			return ResponseEntity.ok(response);
+			return ResponseEntity.ok(response); 
 		} catch (Exception e) {
 			log.error("Error occurred while fetching employees for profile screening: ", e);
 			return ResponseEntity.status(500).body(null);

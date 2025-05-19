@@ -45,6 +45,8 @@ dependencies {
 	implementation 'org.modelmapper:modelmapper:3.2.0'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+	
 	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -53,6 +55,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	
 	// Tomcat (provided scope in Maven becomes 'providedRuntime' in Gradle)
     runtimeOnly 'org.springframework.boot:spring-boot-starter-tomcat'
 	

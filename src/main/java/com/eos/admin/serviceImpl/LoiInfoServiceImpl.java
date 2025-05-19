@@ -2,21 +2,18 @@ package com.eos.admin.serviceImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.eos.admin.dto.LoiInfoDTO;
 import com.eos.admin.dto.LoiInfoDropDownDTO;
 import com.eos.admin.dto.LoiInformationDTO;
 import com.eos.admin.dto.NameTypeDTO;
-import com.eos.admin.entity.Location;
 import com.eos.admin.entity.LoiInformationTableEntity;
 import com.eos.admin.repository.DesignationRepository;
 import com.eos.admin.repository.LocationRepository;

@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.eos.admin.entity.Department;
-import com.eos.admin.entity.Location;
 import com.eos.admin.repository.DepartmentRepository;
 import com.eos.admin.repository.LocationRepository;
 import com.eos.admin.service.DepartmentService;
