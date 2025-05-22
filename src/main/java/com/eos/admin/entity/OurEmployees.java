@@ -77,7 +77,12 @@ public class OurEmployees {
 	@Column(name = "training_days")
 	private Long trainingDays;
 	
+	@Column(name = "loyaltyBonus")
+	private Double loyaltyBonus;
 
+	@Column(name = "pli")
+	private Double pli;
+	
 	@Version
     @Column(name = "version")
     private Long version; 

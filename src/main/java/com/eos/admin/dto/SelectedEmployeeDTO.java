@@ -19,4 +19,9 @@ public class SelectedEmployeeDTO {
      private String remarksByHr;
      private String remarksByManager;
      private String profileScreenRemarks;
+     private String jobProfile;
+     private String grade;
+     private String companyType;
+     private String department;
+     private String lastInterviewAssign;
 }

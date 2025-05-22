@@ -185,10 +185,27 @@ public class EmployeeController {
 			throw new InvalidInputException("Process Name is required");
 
 		}
+		
+		if(scheduleInterviewOnProcessDTO.getGrade() == null
+			|| scheduleInterviewOnProcessDTO.getGrade().trim().isEmpty()) {
+				throw new InvalidInputException("Grade is require");
+			}
+		if(scheduleInterviewOnProcessDTO.getCompanyType() == null
+				|| scheduleInterviewOnProcessDTO.getCompanyType().trim().isEmpty()) {
+					throw new InvalidInputException("company Type is require");
+				}
+		if(scheduleInterviewOnProcessDTO.getDepartment() == null
+				|| scheduleInterviewOnProcessDTO.getDepartment().trim().isEmpty()) {
+					throw new InvalidInputException("Department is require");
+				}
 		if (scheduleInterviewOnProcessDTO.getJobProfile() == null
 				|| scheduleInterviewOnProcessDTO.getJobProfile().trim().isEmpty()) {
-			throw new InvalidInputException("job Profile is require");
+			throw new InvalidInputException(" Designation is require");
 		}
+//		if(scheduleInterviewOnProcessDTO.getDesignation() == null
+//				|| scheduleInterviewOnProcessDTO.getDesignation().trim().isEmpty()) {
+//					throw new InvalidInputException("Designation is require");
+//				}
 		employeeService.updateRemarks(employeeId, scheduleInterviewOnProcessDTO, RemarksType.SCHEDULE);
 		return ResponseEntity.ok().build();
 

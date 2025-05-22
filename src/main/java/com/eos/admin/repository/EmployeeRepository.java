@@ -49,7 +49,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "WHERE esd.processesStatus = 'Reject' AND e.appliedlocation = :location")
 	List<Object[]> getListOfEmployeeRejectByProcessManager(@Param("location") String location);
 
-	@Query(value = "SELECT e.id,e.fullName,e.email,e.mobileNo,e.gender,e.creationDate,esd.profileScreenRemarks,esd.remarksByHr,esd.remarksByManager "
+	@Query(value = "SELECT e.id,e.fullName,e.email,e.mobileNo,e.gender,e.creationDate,e.jobProfile,esd.profileScreenRemarks,esd.remarksByHr,esd.remarksByManager,esd.grade,esd.companyType,esd.department,esd.lastInterviewAssign "
 			+ "FROM Employee e " + "JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
 			+ "WHERE esd.managerStatus = 'Select' AND e.appliedlocation = :location "
 			+"AND NOT EXISTS (SELECT 1 FROM OurEmployees oe WHERE oe.employee.id = e.id)")

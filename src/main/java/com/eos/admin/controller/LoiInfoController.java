@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eos.admin.dto.LoiInfoDTO;
 import com.eos.admin.dto.LoiInfoDropDownDTO;
 import com.eos.admin.dto.LoiInformationDTO;
+import com.eos.admin.dto.NameTypeDTO;
 import com.eos.admin.exception.InvalidInputException;
 import com.eos.admin.service.LoiInfoService;
 
@@ -74,7 +75,8 @@ public class LoiInfoController {
 		log.info("Received parameters - Process: {}, Grade: {}, Company Type: {}", process, grade, companyType);
 
 		try {
-			List<LoiInfoDropDownDTO> getGradValue = loiInfoService.getAllGradValue(process, grade, companyType);
+			String formattedProcessName = process.replaceFirst("-\\d+$", "");
+			List<LoiInfoDropDownDTO> getGradValue = loiInfoService.getAllGradValue(formattedProcessName, grade, companyType);
 			return new ResponseEntity<>(getGradValue, HttpStatus.OK);
 		} catch (Exception e) {
 			log.error("An error occurred while processing the LoiInfo: {}", e.getMessage(), e);
@@ -110,4 +112,8 @@ public class LoiInfoController {
 	}
    }
 
+ @GetMapping("/names-by-location/{location}")
+ public List<NameTypeDTO> getNamesByLocation(@PathVariable("location") String location) {
+     return loiInfoService.getNamesByLocation(location);
+ }
 }

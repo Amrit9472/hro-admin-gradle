@@ -1,5 +1,6 @@
 package com.eos.admin.serviceImpl;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
@@ -16,16 +17,20 @@ import com.eos.admin.entity.OurEmployees;
 import com.eos.admin.repository.EmployeeRepository;
 import com.eos.admin.repository.OurEmployeeRepository;
 import com.eos.admin.service.OurEmployeeService;
-import com.itextpdf.io.exceptions.IOException;
 import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.io.source.ByteArrayOutputStream;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
+
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -98,25 +103,60 @@ public class OurEmployeeServiceImpl implements OurEmployeeService {
 			String processCode = savedEmployee.getProcess();
 			Date joiningDate = savedEmployee.getJoiningDate(); 
 			Long trainingDays = savedEmployee.getTrainingDays();
+			Double loyaltyBonus = savedEmployee.getLoyaltyBonus(); // Ensure these getters exist
+			Double pli = savedEmployee.getPli();
 			// Assuming it's a String; if LocalDate, format
 																// accordingly
 			Double ctc = savedEmployee.getCtc(); // Assuming it's a String or format if numeric
 
 			
 			PdfFont helvetica = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-			// Reference and Date
+			
+			String fontPath = "src/main/resources/fonts/Times-New-Roman.ttf"; // Ensure this is the correct path
+			String fontPath2 = "src/main/resources/fonts/Times-New-Roman-Bold.ttf";
+			String fontPath3 = "src/main/resources/fonts/Times-New-Roman-Bold-Italic.ttf";
+			String fontPath4 = "src/main/resources/fonts/Times-New-Roman-Italic.ttf";
+			String fontPath5 = "src/main/resources/fonts/ARIAL.ttf";
+			
+            PdfFont timesNewRomanFont = PdfFontFactory.createFont(fontPath, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            PdfFont timesNewRomanFontBold = PdfFontFactory.createFont(fontPath2, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            PdfFont timesNewRomanFontBoldItalic = PdfFontFactory.createFont(fontPath3, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            PdfFont timesNewRomanFontItalic = PdfFontFactory.createFont(fontPath4, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+            PdfFont arial = PdfFontFactory.createFont(fontPath5, PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
+
+            String logoPath = "src/main/resources/logo.png"; // or use ClassLoader if needed
+            ImageData imageData = ImageDataFactory.create(logoPath);
+            Image logo = new Image(imageData);
+            
+            // Reference and Date
 			document.add(new Paragraph("Date: " + LocalDate.now()).setFont(helvetica));
 	        document.add(new Paragraph("Reference No: " + referenceId));
 	    
+	        document.add(logo);
+	        
 	     	document.add(new Paragraph("Letter of Intent").setTextAlignment(TextAlignment.CENTER)
-	     					.setFontSize(14).setMarginBottom(20));
+	     					.setFontSize(14).setMarginBottom(20).setFont(timesNewRomanFont));
 	     	
-			document.add(new Paragraph("Dear " + name + ",").setMarginTop(10));
+//			document.add(new Paragraph("Dear " + name + ",").setFont(arial).setMarginTop(10));
+
+	     	
+	     	Paragraph paragraph = new Paragraph()
+	     		    .add(new Text("Dear ").setFont(arial)) 
+	     		    .add(new Text(name).setFont(timesNewRomanFontBold))
+	     		    .add(new Text(",").setFont(arial))
+	     		    .setMarginTop(10); 
 
 			// Letter body
-			document.add(new Paragraph("We are happy to announce that you have been selected for the position of \""
-					+ designation + "\" for OPERATIONS (" + processCode
-					+ ") Department in Eureka Outsourcing Solutions Pvt. Ltd. \"EOS\""));
+	     	Paragraph paragraph2 = new Paragraph()
+	     			.add(new Text ("We are happy to announce that you have been selected for the position of").setFont(arial))
+	     			.add(new Text (designation).setFont(timesNewRomanFontBold))
+	     			.add(new Text ("for OPERATIONS").setFont(arial))
+	     			.add(new Text (processCode).setFont(timesNewRomanFontBold))
+	     			.add(new Text ("Department in Eureka Outsourcing Solutions Pvt. Ltd. \"EOS\"").setFont(arial));
+	     	
+//			document.add(new Paragraph("We are happy to announce that you have been selected for the position of \""
+//					+ designation + "\" for OPERATIONS (" + processCode
+//					+ ") Department in Eureka Outsourcing Solutions Pvt. Ltd. \"EOS\"")).setFont(arial);
 
 			document.add(new Paragraph("Your date of joining/induction would not be later than " + joiningDate + "."));
 
@@ -145,6 +185,17 @@ public class OurEmployeeServiceImpl implements OurEmployeeService {
 				         "Training period can extend by 3-4 working days depending upon the content coverage, and trainees capability in learning the subject matter. "
 				        + "The extended period shall form part of the stipend amount stated in the LOI."));
 
+			}
+			if (loyaltyBonus != null && pli != null && loyaltyBonus > 0 && pli > 0) {
+			    document.add(new Paragraph("You will also be eligible for Loyalty Bonus " + loyaltyBonus
+			        + "/- per month & Performance Linked Incentive " + pli
+			        + " /- per month. Refer terms and conditions mentioned overleaf."));
+			} else if (loyaltyBonus != null && loyaltyBonus > 0) {
+			    document.add(new Paragraph("You will also be eligible for Loyalty Bonus " + loyaltyBonus
+			        + "/- per month. Refer terms and conditions mentioned overleaf."));
+			} else if (pli != null && pli > 0) {
+			    document.add(new Paragraph("You will also be eligible for Attendance Linked Incentive " + pli
+			        + "/- per month. Refer terms and conditions mentioned overleaf."));
 			}
 			// Footer
 			document.add(new Paragraph("\n\nIssued by"));

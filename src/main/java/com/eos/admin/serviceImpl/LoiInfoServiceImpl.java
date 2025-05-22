@@ -78,8 +78,7 @@ public class LoiInfoServiceImpl implements LoiInfoService {
 
 		try {
 			List<Object[]> getValue = loiInfoRepository.findGridValuesByProcessGradeCompanyType(
-//					process, grade,
-//					companyType
+
 					process.trim().toLowerCase(), grade.trim().toLowerCase(), companyType.trim().toLowerCase());
 			ArrayList<LoiInfoDropDownDTO> dropdownList = new ArrayList<>();
 
@@ -122,20 +121,20 @@ public class LoiInfoServiceImpl implements LoiInfoService {
 	public LoiInformationDTO getDetailsOfLoiInformation(String gridNo ,String location) {
 	    try {
 	        LoiInformationTableEntity entity = loiInfoRepository.findDetailsWithGridNo(gridNo);
-	        List<NameTypeDTO>  locationResponse = locationRepository.findNamesByLocationName(location);
+//	        List<NameTypeDTO>  locationResponse = locationRepository.findNamesByLocationName(location);
 	        if (entity == null) {
 	            throw new NoSuchElementException("No data found for Grid No: " + gridNo);
 	        }
 
 	        LoiInformationDTO loiInformationDTO = modelMapper.map(entity, LoiInformationDTO.class);
 	        // Set the dropdown data in DTO
-	        loiInformationDTO.setDepartmentDropdown(locationResponse.stream()
-	                .filter(item -> item.getType().equals("Department"))
-	                .collect(Collectors.toList()));
-
-	        loiInformationDTO.setDesignationDropdown(locationResponse.stream()
-	                .filter(item -> item.getType().equals("Designation"))
-	                .collect(Collectors.toList()));
+//	        loiInformationDTO.setDepartmentDropdown(locationResponse.stream()
+//	                .filter(item -> item.getType().equals("Department"))
+//	                .collect(Collectors.toList()));
+//
+//	        loiInformationDTO.setDesignationDropdown(locationResponse.stream()
+//	                .filter(item -> item.getType().equals("Designation"))
+//	                .collect(Collectors.toList()));
 
 	        return loiInformationDTO;
 	    } catch (NoSuchElementException e) {
@@ -145,6 +144,11 @@ public class LoiInfoServiceImpl implements LoiInfoService {
 	        log.error("Error occurred while mapping LoiInformation: {}", e.getMessage(), e);
 	        throw new RuntimeException("An error occurred while fetching LOI information", e);
 	    }
+	}
+
+	@Override
+	public List<NameTypeDTO> getNamesByLocation(String location) {
+		return locationRepository.findNamesByLocationName(location);
 	}
 
 

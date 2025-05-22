@@ -16,4 +16,8 @@ public class StatusRequestDTO {
 	private String processName;
 	private String jobProfile;
 	private String clientRound;
+	private String grade;
+	private String companyType;
+//	private String designation;
+	private String department;
 }

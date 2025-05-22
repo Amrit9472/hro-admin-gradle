@@ -5,6 +5,7 @@ import java.util.List;
 import com.eos.admin.dto.LoiInfoDTO;
 import com.eos.admin.dto.LoiInfoDropDownDTO;
 import com.eos.admin.dto.LoiInformationDTO;
+import com.eos.admin.dto.NameTypeDTO;
 
 public interface LoiInfoService {
 
@@ -17,5 +18,7 @@ public interface LoiInfoService {
 	List<LoiInfoDropDownDTO> getAllUniqueDropDown();
 
 	LoiInformationDTO getDetailsOfLoiInformation(String gridNo, String location);
+
+	List<NameTypeDTO> getNamesByLocation(String location);
 
 }

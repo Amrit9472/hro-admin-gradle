@@ -56,4 +56,17 @@ public class EmployeeStatusDetails {
 
 	    @Column(name = "client_round")
 	    private String clientRound;
+	    
+	    @Column(name = "grade")
+	    private String grade;
+	    
+	    @Column(name = "companyType")
+	    private String companyType;
+	    
+//	    @Column(name = "designation")
+//	    private String designation;
+	    
+	    @Column(name = "department")
+	    private String department;
+	    
 }

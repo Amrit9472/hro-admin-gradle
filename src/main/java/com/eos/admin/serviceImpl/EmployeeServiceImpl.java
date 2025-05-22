@@ -268,6 +268,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 				employeeStatusDetails.setRemarksByHr(statusRequestDTO.getRemarks());
 				employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
 				employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
+				employeeStatusDetails.setGrade(statusRequestDTO.getGrade());
+				employeeStatusDetails.setCompanyType(statusRequestDTO.getCompanyType());
+				employeeStatusDetails.setDepartment(statusRequestDTO.getDepartment());
+//				employeeStatusDetails.set
 
 				employeeStatusDetailsRepository.save(employeeStatusDetails);
 				log.info("EmployeeStatusDetails saved successfully for employee ID: {}", employeeId);
@@ -489,9 +493,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 					selectedEmployee.setMobileNo((Long) result[3]);
 					selectedEmployee.setGender((String) result[4]);
 					selectedEmployee.setCreationDate((Date) result[5]);
-					selectedEmployee.setProfileScreenRemarks((String) result[6]);
+					selectedEmployee.setProfileScreenRemarks((String) result[9]);
 					selectedEmployee.setRemarksByHr((String) result[7]);
 					selectedEmployee.setRemarksByManager((String) result[8]);
+					selectedEmployee.setJobProfile((String) result[6]);
+					selectedEmployee.setGrade((String) result[10]);
+					selectedEmployee.setCompanyType((String) result[11]);
+					selectedEmployee.setDepartment((String) result[12]);
+					selectedEmployee.setLastInterviewAssign((String) result[13]);
 				} catch (ClassCastException | ArrayIndexOutOfBoundsException castEx) {
 					log.error("Error mapping row to DTO. Row: {}, Error: {}", Arrays.toString(result),
 							castEx.getMessage(), castEx);

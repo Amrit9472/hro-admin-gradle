@@ -27,7 +27,7 @@ public class LoiInformationDTO {
      private Double takeHome;
      private Double loyaltyBonus;
      private Double pli;
-     private List<NameTypeDTO> departmentDropdown;
-     private List<NameTypeDTO> designationDropdown;
+//     private List<NameTypeDTO> departmentDropdown;
+//     private List<NameTypeDTO> designationDropdown;
 
 }
