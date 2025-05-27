@@ -1,9 +1,13 @@
 package com.eos.admin.config;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.eos.admin.jwt.JWTUtilsImpl;
 import com.eos.admin.serviceImpl.OurUserDetailsServiceImpl;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,22 +51,44 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
 		jwtToken = authHeader.substring(7);
 		userEmail = jwtUtilsImpl.extractUsername(jwtToken);
+		 if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-		if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = ourUserDetailsServiceImpl.loadUserByUsername(userEmail);
+		        // ✅ Extract authorities directly from the JWT token
+		        Claims claims = jwtUtilsImpl.extractAllClaims(jwtToken);
+		        List<String> roles = claims.get("authorities", List.class);
+		        List<GrantedAuthority> authorities = roles.stream()
+		        	    .map(role -> new SimpleGrantedAuthority(role))
+		        	    .collect(Collectors.toList());
 
-			if (jwtUtilsImpl.isTokenValid(jwtToken, userDetails)) {
-				SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-				UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userDetails, null,
-						userDetails.getAuthorities());
-				token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-				securityContext.setAuthentication(token);
-				SecurityContextHolder.setContext(securityContext);
-			}
+
+		        // Set authentication context
+		        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+		                userEmail, null, authorities);
+		        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+		        SecurityContext context = SecurityContextHolder.createEmptyContext();
+		        context.setAuthentication(authToken);
+		        SecurityContextHolder.setContext(context);
+		    }
+
+		    filterChain.doFilter(request, response);
 		}
 
-		filterChain.doFilter(request, response);
-
-	}
+//		if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+//			UserDetails userDetails = ourUserDetailsServiceImpl.loadUserByUsername(userEmail);
+//
+//			if (jwtUtilsImpl.isTokenValid(jwtToken, userDetails)) {
+//				SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+//				UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userDetails, null,
+//						userDetails.getAuthorities());
+//				token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//				securityContext.setAuthentication(token);
+//				SecurityContextHolder.setContext(securityContext);
+//			}
+//		}
+//
+//		filterChain.doFilter(request, response);
+//
+//	}
 
 }

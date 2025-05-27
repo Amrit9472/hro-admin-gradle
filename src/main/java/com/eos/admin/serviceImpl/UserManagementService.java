@@ -7,6 +7,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -89,7 +91,9 @@ public class UserManagementService {
 					new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 			var user = usersRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
 			var jwt = jwtUtilsImpl.generateToken(user);
-			var refreshToken = jwtUtilsImpl.generateRefreshToken(new HashMap<>(), user);
+//			var refreshToken = jwtUtilsImpl.generateRefreshToken(new HashMap<>(), user);
+			var refreshToken = jwtUtilsImpl.generateRefreshToken(user);
+
 			response.setStatusCode(200);
 			response.setToken(jwt);
 			response.setRole(user.getRole());
@@ -107,6 +111,46 @@ public class UserManagementService {
 		}
 		return response;
 	}
+//	
+//	public ReqRes login(ReqRes loginRequest) {
+//	    ReqRes response = new ReqRes();
+//
+//	    try {
+//	        // 1. Authenticate and get full user details including authorities
+//	        Authentication authentication = authenticationManager.authenticate(
+//	            new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+//	        );
+//
+//	        // 2. Get Spring Security's UserDetails
+//	        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+//
+//	        // 3. Now use UserDetails to generate the token with roles
+//	        String jwt = jwtUtilsImpl.generateToken(userDetails);
+//	        String refreshToken = jwtUtilsImpl.generateRefreshToken(new HashMap<>(), userDetails);
+//
+//	        // Optional: Get your custom user for extra info like name, city, etc.
+//	        var user = usersRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
+//
+//	        // 4. Build response
+//	        response.setStatusCode(200);
+//	        response.setToken(jwt);
+//	        response.setRefreshToken(refreshToken);
+//	        response.setRole(userDetails.getAuthorities().toString()); // or user.getRole() if preferred
+//	        response.setName(user.getName());
+//	        response.setEmail(user.getEmail());
+//	        response.setCity(user.getCity());
+//	        response.setExpirationTime("24Hrs");
+//	        response.setMessage("SuccessFull login");
+//	        response.setUniqueCode(user.getUniqueCode());
+//
+//	    } catch (Exception e) {
+//	        response.setStatusCode(500);
+//	        response.setMessage("Incorrect Email or Password");
+//	    }
+//
+//	    return response;
+//	}
+
 
 	public ReqRes changePassword(ChangePasswordRequest changePasswordRequest) {
 		ReqRes resp = new ReqRes();
