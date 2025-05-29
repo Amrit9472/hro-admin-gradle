@@ -73,4 +73,12 @@ public class CandidatesServiceImpl implements CandidatesService {
                 .map(entity -> modelMapper.map(entity, CandidatesDTO.class))
                 .collect(Collectors.toList());
     }
+    
+
+    @Override
+    public String getManagerStatusByEmail(String email) {
+        Optional<String> managerStatus = candidatesRepository.findManagerStatusByEmail(email);
+
+        return managerStatus.orElse(null);
+    }
 }

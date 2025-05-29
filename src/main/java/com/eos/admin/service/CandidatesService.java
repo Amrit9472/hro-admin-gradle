@@ -12,5 +12,6 @@ public interface CandidatesService {
 	List<CandidatesDTO> saveCandidatesMultiple(List<CandidatesDTO> candidatesDTO);
 	
 	public List<CandidatesDTO> findBySubmittedDateBetweenAndVendorEmail(LocalDateTime start, LocalDateTime end, String vendorEmail);
-
+	
+	public String getManagerStatusByEmail(String email);
 }

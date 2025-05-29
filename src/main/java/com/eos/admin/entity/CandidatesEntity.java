@@ -31,6 +31,8 @@ public class CandidatesEntity {
     
     private String candiName;
     private String candiMobile;
+    
+    @Column(name = "candi_email")
     private String candiEmail;
     
     private LocalDateTime submittedDate;

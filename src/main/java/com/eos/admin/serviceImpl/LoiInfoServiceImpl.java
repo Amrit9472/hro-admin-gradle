@@ -148,7 +148,8 @@ public class LoiInfoServiceImpl implements LoiInfoService {
 
 	@Override
 	public List<NameTypeDTO> getNamesByLocation(String location) {
-		return locationRepository.findNamesByLocationName(location);
+		return locationRepository.findNamesByLocationName(location).stream().map(p -> new NameTypeDTO(p.getName()
+				,p.getType())).collect(Collectors.toList());
 	}
 
 

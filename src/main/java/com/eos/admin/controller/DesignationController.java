@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eos.admin.entity.Designation;
 import com.eos.admin.service.DesignationService;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
 @RequestMapping("/api/designations")
+@CrossOrigin(origins = "*")
 public class DesignationController {
 	
 	

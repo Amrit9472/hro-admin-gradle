@@ -22,4 +22,7 @@ public class CandidatesDTO {
 	private String vendorEmail;
 	
 	private String scheme;
+
+	private String hrStatus;
 }
+

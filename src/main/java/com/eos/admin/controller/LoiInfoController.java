@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin("*")
 @RequestMapping("/api/loi")
 public class LoiInfoController {
 
