@@ -3,6 +3,7 @@ package com.eos.admin.dto;
 
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,6 +21,5 @@ public class ProfileScreaningResponseDto {
     private String permanentAddress;
     private String gender;
     private Date creationDate;
-  
-
+    private List<String> languages;
 }

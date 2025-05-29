@@ -1,6 +1,6 @@
 package com.eos.admin.serviceImpl;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.eos.admin.dto.ChangePasswordRequest;
 import com.eos.admin.dto.ReqRes;
 import com.eos.admin.entity.OurUsers;
 import com.eos.admin.jwt.JWTUtilsImpl;
@@ -28,6 +29,8 @@ public class UserManagementService {
 
 	@Autowired
 	private JWTUtilsImpl jwtUtilsImpl;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	public ReqRes register(ReqRes registrationRequest) {
 		ReqRes resp = new ReqRes();
@@ -57,10 +60,10 @@ public class UserManagementService {
 			String processCode = registrationRequest.getProcessCode().trim();
 			ourUsers.setProcess(processName);
 			ourUsers.setProcessCode(processCode);
-			
-			String uniqueCode = processName +"-"+processCode;
+
+			String uniqueCode = processName + "-" + processCode;
 			ourUsers.setUniqueCode(uniqueCode);
-			
+
 			ourUsers.setPassword(passwordEncode.encode(registrationRequest.getPassword()));
 
 			OurUsers ourUsersResult = usersRepository.save(ourUsers);
@@ -83,7 +86,9 @@ public class UserManagementService {
 					new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 			var user = usersRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
 			var jwt = jwtUtilsImpl.generateToken(user);
-			var refreshToken = jwtUtilsImpl.generateRefreshToken(new HashMap<>(), user);
+//			var refreshToken = jwtUtilsImpl.generateRefreshToken(new HashMap<>(), user);
+			var refreshToken = jwtUtilsImpl.generateRefreshToken(user);
+
 			response.setStatusCode(200);
 			response.setToken(jwt);
 			response.setRole(user.getRole());
@@ -101,6 +106,94 @@ public class UserManagementService {
 		}
 		return response;
 	}
+//	
+//	public ReqRes login(ReqRes loginRequest) {
+//	    ReqRes response = new ReqRes();
+//
+//	    try {
+//	        // 1. Authenticate and get full user details including authorities
+//	        Authentication authentication = authenticationManager.authenticate(
+//	            new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+//	        );
+//
+//	        // 2. Get Spring Security's UserDetails
+//	        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+//
+//	        // 3. Now use UserDetails to generate the token with roles
+//	        String jwt = jwtUtilsImpl.generateToken(userDetails);
+//	        String refreshToken = jwtUtilsImpl.generateRefreshToken(new HashMap<>(), userDetails);
+//
+//	        // Optional: Get your custom user for extra info like name, city, etc.
+//	        var user = usersRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
+//
+//	        // 4. Build response
+//	        response.setStatusCode(200);
+//	        response.setToken(jwt);
+//	        response.setRefreshToken(refreshToken);
+//	        response.setRole(userDetails.getAuthorities().toString()); // or user.getRole() if preferred
+//	        response.setName(user.getName());
+//	        response.setEmail(user.getEmail());
+//	        response.setCity(user.getCity());
+//	        response.setExpirationTime("24Hrs");
+//	        response.setMessage("SuccessFull login");
+//	        response.setUniqueCode(user.getUniqueCode());
+//
+//	    } catch (Exception e) {
+//	        response.setStatusCode(500);
+//	        response.setMessage("Incorrect Email or Password");
+//	    }
+//
+//	    return response;
+//	}
+
+	public ReqRes changePassword(ChangePasswordRequest changePasswordRequest) {
+		ReqRes resp = new ReqRes();
+		try {
+			String email = changePasswordRequest.getEmail();
+			String oldPassWord = changePasswordRequest.getOldPassword();
+			String newPassWord = changePasswordRequest.getNewPassword();
+			String confirmPassword = changePasswordRequest.getConfirmPassword();
+
+			if (email != null && !email.isEmpty() && oldPassWord != null && !oldPassWord.isEmpty()
+					&& newPassWord != null && !newPassWord.isEmpty() && confirmPassword != null
+					&& !confirmPassword.isEmpty()) {
+
+				if (!newPassWord.equals(confirmPassword)) { // Check if newPassword and confirmPassword match
+					resp.setStatusCode(400);
+					resp.setError("New password and confirm password do not match");
+					return resp;
+				}
+
+				Optional<OurUsers> existingUser = usersRepository.findByEmail(email);
+				if (existingUser.isPresent()) {
+					OurUsers user = existingUser.get();
+					if (passwordEncoder.matches(oldPassWord, user.getPassword())) {
+						// Update the password
+						user.setPassword(passwordEncoder.encode(newPassWord));
+						usersRepository.save(user);
+
+						resp.setMessage("Password changed successfully");
+						resp.setStatusCode(200);
+					} else {
+						resp.setStatusCode(400);
+						resp.setError("Old password is incorrect");
+					}
+				} else {
+					resp.setStatusCode(404);
+					resp.setError("User not Found");
+				}
+			} else {
+				resp.setStatusCode(400);
+				resp.setError("All fields are required");
+			}
+
+		} catch (Exception e) {
+			resp.setStatusCode(500);
+			resp.setError("An error occurred: " + e.getMessage());
+		}
+
+		return resp;
+	}
 
 	private String formattedString(String string) {
 
@@ -109,6 +202,11 @@ public class UserManagementService {
 		}
 		return string;
 
+	}
+
+	public List<String> getMyProcessName() {
+		List<String> processes = usersRepository.findDistinctProcesses();
+		return processes;
 	}
 
 }

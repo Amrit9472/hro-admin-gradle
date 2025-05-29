@@ -23,12 +23,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.eos.admin.dto.EmployeeDetailsOnManagerPageDTO;
 import com.eos.admin.dto.EmployeeDto;
 import com.eos.admin.dto.EmployeeExcelReportDto;
 import com.eos.admin.dto.EmployeeExcelReportInSequenceDto;
 import com.eos.admin.dto.EmployeeInformationDTO;
 import com.eos.admin.dto.EmployeeStatusHistroyDTO;
+import com.eos.admin.dto.LanguageDTO;
 import com.eos.admin.dto.ManagerPageResponseDTO;
 import com.eos.admin.dto.ProfileScreanRejectedDTO;
 import com.eos.admin.dto.ProfileScreaningResponseDto;
@@ -41,6 +42,7 @@ import com.eos.admin.dto.StatusRequestDTO;
 import com.eos.admin.entity.Employee;
 import com.eos.admin.entity.EmployeeStatusDetails;
 import com.eos.admin.entity.InterviewProcesses;
+import com.eos.admin.entity.Language;
 import com.eos.admin.entity.StatusHistory;
 import com.eos.admin.enums.RemarksType;
 import com.eos.admin.exception.DuplicateRecordException;
@@ -49,12 +51,15 @@ import com.eos.admin.exception.ResourceNotFoundException;
 import com.eos.admin.repository.EmployeeRepository;
 import com.eos.admin.repository.EmployeeStatusDetailsRepository;
 import com.eos.admin.repository.InterviewProcessRepository;
+import com.eos.admin.repository.LanguagesRepository;
 import com.eos.admin.repository.StatusHistoryRepository;
 import com.eos.admin.service.EmployeeService;
 import com.eos.admin.service.FileService;
 import com.eos.admin.service.StatusHistoryService;
-
 import jakarta.servlet.http.HttpServletResponse;
+import com.google.zxing.Result;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -69,13 +74,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 	private ModelMapper modelMapper;
 	private EmployeeStatusDetailsRepository employeeStatusDetailsRepository;
 	private InterviewProcessRepository interviewProcessRepository;
+	private LanguagesServiceImpl languagesServiceImpl;
+	private LanguagesRepository languagesRepository;
 
 	@Autowired
 	public EmployeeServiceImpl(EmployeeRepository employeeRepository, FileService fileSercice,
 			StatusHistoryService statusHistoryService, StatusHistoryRepository statusHistoryRepository,
 			NotificationServiceImple notificationServiceImple, ModelMapper modelMapper,
 			EmployeeStatusDetailsRepository employeeStatusDetailsRepository,
-			InterviewProcessRepository interviewProcessRepository) {
+			InterviewProcessRepository interviewProcessRepository,
+			LanguagesServiceImpl languagesServiceImpl,
+			LanguagesRepository languagesRepository) {
 		super();
 		this.employeeRepository = employeeRepository;
 		this.fileSercice = fileSercice;
@@ -85,11 +94,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 		this.modelMapper = modelMapper;
 		this.employeeStatusDetailsRepository = employeeStatusDetailsRepository;
 		this.interviewProcessRepository = interviewProcessRepository;
+		this.languagesServiceImpl = languagesServiceImpl;
+		this.languagesRepository= languagesRepository;
 	}
 
 	@Override
-	public EmployeeDto createEmployee(EmployeeDto employeeDto, MultipartFile file, String path) throws IOException {
-
+	@Transactional
+	public EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> file, String path) throws IOException {
 		// Check for duplicate email
 		if (checkDuplicateEmail(employeeDto.getEmail())) {
 			log.info("Starting employee creation process for: {}", employeeDto.getFullName());
@@ -102,8 +113,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 		}
 		// Upload the file
 		log.info("Uploading image for Aadhaar number: {}", employeeDto.getAadhaarNumber());
-		String fileName = fileSercice.uploadImage(path, file, employeeDto.getAadhaarNumber());
-		employeeDto.setAadharFilename(fileName);
+
+		List<String> fileName = fileSercice.uploadImage(path, file, employeeDto.getAadhaarNumber());
+//		employeeDto.setAadharFilename(fileName);
 		log.info("File uploaded successfully with name: {}", fileName);
 
 		// Format and set the full name
@@ -113,13 +125,20 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 		// Map DTO to entity and save
 		Employee employeeEntity = modelMapper.map(employeeDto, Employee.class);
-		log.info("Saving employee entity to the database: {}", employeeEntity);
+
+		// **Crucial Step: Set the employee in each Language object**
+	    if (employeeEntity.getLanguage() != null) {
+	        for (Language language : employeeEntity.getLanguage()) {
+	            language.setEmployee(employeeEntity);
+	        }
+	    }
+	    
 		Employee savedEmployeeEntity = employeeRepository.save(employeeEntity);
 		log.info("Employee entity saved with ID: {}", savedEmployeeEntity.getId());
-
+		
 		// Create initial status and update status
 		statusHistoryService.createInitialStatus(savedEmployeeEntity);
-		updateEmployeeStatus(savedEmployeeEntity);
+//		updateEmployeeStatus(savedEmployeeEntity);
 		log.info("Initial status and employee status updated for employee ID: {}", savedEmployeeEntity.getId());
 
 		// Create EmployeeStatusDetails if needed
@@ -137,18 +156,19 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig() {
+
+	public List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location) {
 		log.info("Entering getListOfEmployeesOnProfileScreaning method.");
 		List<ProfileScreaningResponseDto> employees = new ArrayList<>();
 		try {
-			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening();
+ 			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim());
 			if (response == null || response.isEmpty()) {
 				log.warn("No employee data found for profile screening.");
 				return employees;
 			}
 			log.info("Successfully fetched employee data from the repository.");
 			for (Object[] result : response) {
-				if (result == null || result.length != 8) {
+				if (result == null || result.length != 9) {
 					log.warn("Invalid data encountered: skipping incomplete record.");
 					continue; // Skip incomplete records
 				}
@@ -163,6 +183,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 					employee.setPermanentAddress((String) result[5]);
 					employee.setGender((String) result[6]);
 					employee.setCreationDate((Date) result[7]);
+					 String languagesString = (String) result[8];
+		                if (languagesString != null && !languagesString.isEmpty()) {
+		                    List<String> languages = Arrays.asList(languagesString.split(", "));
+		                    employee.setLanguages(languages); // Set the languages to the employee DTO
+		                } else {
+		                    employee.setLanguages(new ArrayList<>()); // No languages available
+		                }
+//					employee.setReadLanguages((List<String>) result[8]);
+//					employee.setWriteLanguages((List<String>) result[9]);
 					employees.add(employee);
 				} catch (NullPointerException e) {
 					log.error("Null value encountered while processing the employee data: " + e.getMessage());
@@ -239,7 +268,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 				employeeStatusDetails.setRemarksByHr(statusRequestDTO.getRemarks());
 				employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
 				employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
-
+				employeeStatusDetails.setGrade(statusRequestDTO.getGrade());
+				employeeStatusDetails.setCompanyType(statusRequestDTO.getCompanyType());
+				employeeStatusDetails.setDepartment(statusRequestDTO.getDepartment());
+//				employeeStatusDetails.set
 				employeeStatusDetailsRepository.save(employeeStatusDetails);
 				log.info("EmployeeStatusDetails saved successfully for employee ID: {}", employeeId);
 
@@ -261,8 +293,30 @@ public class EmployeeServiceImpl implements EmployeeService {
 				statusHistoryService.trackStatusChange(statusRequestDTO, employeeId);
 				log.info("Status change tracked for employee ID: {}", employeeId);
 				break;
+			}
+			case MANAGER: {
+				log.info("Setting manager remarks: {} and manager status: {} for employee ID: {}",
+						statusRequestDTO.getRemarks(), statusRequestDTO.getNewStatus(), employeeId);
+
+				if (employeeStatusDetails == null) {
+					log.info("No existing EmployeeStatusDetails found for employee ID : {}", employeeId);
+					employeeStatusDetails = new EmployeeStatusDetails();
+					employeeStatusDetails.setEmployee(searchEmployee);
+				}
+
+				employeeStatusDetails.setRemarksByManager(statusRequestDTO.getRemarks()); // Assuming you have this
+																							// field
+				employeeStatusDetails.setManagerStatus(statusRequestDTO.getNewStatus());
+				employeeStatusDetails.setProcessesStatus(statusRequestDTO.getNewStatus());// Assuming you have this
+																							// field
+				employeeStatusDetails.setClientRound(statusRequestDTO.getClientRound());
+
+				statusHistoryService.trackStatusChange(statusRequestDTO, employeeId);
+				log.info("Status change tracked for employee ID: {}", employeeId);
+				break;
 
 			}
+
 			default:
 				// Log the case of an unexpected remarks type
 				log.error("Unexpected remarks type: {}", remarksType);
@@ -341,11 +395,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage() {
+	public List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location) {
 		// TODO Auto-generated method stub
 		log.info("Request for get list of Employee on schedule Interview page from Empoloyee serviceImp");
 		try {
-			List<Object[]> repositoryResponse = employeeRepository.getListOfEmployeeSechedulePage();
+			List<Object[]> repositoryResponse = employeeRepository.getListOfEmployeeSechedulePage(location);
 			List<ScheduleInterviewPageRequestDTO> response = new ArrayList<>();
 			for (Object[] repositoryResponses : repositoryResponse) {
 				ScheduleInterviewPageRequestDTO scheduleInterviewPageRequestDTO = new ScheduleInterviewPageRequestDTO();
@@ -369,9 +423,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<RejectPageEmployeeDTO> getListOfEmployeeRejectedByManager() {
+	public List<RejectPageEmployeeDTO> getListOfEmployeeRejectedByManager(String location) {
 		try {
-			List<Object[]> respositoryResponse = employeeRepository.getListOfEmployeeRejectByProcessManager();
+			List<Object[]> respositoryResponse = employeeRepository.getListOfEmployeeRejectByProcessManager(location);
 			List<RejectPageEmployeeDTO> proceesedResponse = new ArrayList<>();
 			for (Object[] result : respositoryResponse) {
 				RejectPageEmployeeDTO rejectPageEmployeeDTO = new RejectPageEmployeeDTO();
@@ -397,26 +451,35 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public void assignInterviewProcessFromRejectPage(Long employeeId, StatusRequestDTO statusRequestDTO) {
-		// TODO Auto-generated method stub
-		Employee employee = employeeRepository.findById(employeeId)
-				.orElseThrow(() -> new RuntimeException("Employee not found"));
-		InterviewProcesses interviewProcesses = new InterviewProcesses();
-		interviewProcesses.setEmployee(employee);
 
-		EmployeeStatusDetails employeeStatusDetails = new EmployeeStatusDetails();
-		employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
-		employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
+	    EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository
+	        .findByEmployeeId(employeeId)
+	        .orElseThrow(() -> new RuntimeException("EmployeeStatusDetails not found"));
 
-		InterviewProcesses savedInterviewProcess = interviewProcessRepository.save(interviewProcesses);
-		setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, savedInterviewProcess);
+	    // Get the associated employee
+	    Employee employee = employeeStatusDetails.getEmployee();
 
+	    // Create and associate InterviewProcesses
+	    InterviewProcesses interviewProcesses = new InterviewProcesses();
+	    interviewProcesses.setEmployee(employee);
+
+	    // Update and save the employee status
+	    employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
+	    employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
+	    employeeStatusDetailsRepository.save(employeeStatusDetails);
+
+	    // Save interview process
+	    InterviewProcesses savedInterviewProcess = interviewProcessRepository.save(interviewProcesses);
+
+	    // Set status history
+	    setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, savedInterviewProcess);
 	}
 
 	@Override
-	public List<SelectedEmployeeDTO> getAllSelectedInterviewList() {
+	public List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location) {
 		try {
 			log.info("Getting selected employee details from repository...");
-			List<Object[]> employeeObjects = employeeRepository.getSelectedEmployeeDetails();
+			List<Object[]> employeeObjects = employeeRepository.getSelectedEmployeeDetails(location);
 
 			List<SelectedEmployeeDTO> selectedEmployees = new ArrayList<>();
 
@@ -430,9 +493,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 					selectedEmployee.setMobileNo((Long) result[3]);
 					selectedEmployee.setGender((String) result[4]);
 					selectedEmployee.setCreationDate((Date) result[5]);
-					selectedEmployee.setRemarksByHr((String) result[6]);
-					selectedEmployee.setRemarksByManager((String) result[7]);
-					selectedEmployee.setProfileScreenRemarks((String) result[8]);
+					selectedEmployee.setProfileScreenRemarks((String) result[9]);
+					selectedEmployee.setRemarksByHr((String) result[7]);
+					selectedEmployee.setRemarksByManager((String) result[8]);
+					selectedEmployee.setJobProfile((String) result[6]);
+					selectedEmployee.setGrade((String) result[10]);
+					selectedEmployee.setCompanyType((String) result[11]);
+					selectedEmployee.setDepartment((String) result[12]);
+					selectedEmployee.setLastInterviewAssign((String) result[13]);
 				} catch (ClassCastException | ArrayIndexOutOfBoundsException castEx) {
 					log.error("Error mapping row to DTO. Row: {}, Error: {}", Arrays.toString(result),
 							castEx.getMessage(), castEx);
@@ -456,10 +524,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected() {
+	public List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location) {
 		try {
 			log.info("Fetching profile screening rejected employee data from repository...");
-			List<Object[]> repoResponse = employeeRepository.getListOfProfileScreaningPage();
+			List<Object[]> repoResponse = employeeRepository.getListOfProfileScreaningPage(location);
 			List<ProfileScreanRejectedDTO> rejectedList = new ArrayList<>();
 
 			for (Object[] result : repoResponse) {
@@ -471,8 +539,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 					dto.setEmail((String) result[2]);
 					dto.setGender((String) result[3]);
 					dto.setMobileNo((Long) result[4]);
-
 					dto.setCreationDate((Date) result[5]);
+					dto.setProfileScreenRemarks((String) result[6]);
 				} catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
 					log.error("Error mapping profile screen rejected data. Row: {}, Error: {}", Arrays.toString(result),
 							ex.getMessage(), ex);
@@ -498,95 +566,95 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public List<EmployeeInformationDTO> getEmployeeInformation() {
-	    List<EmployeeInformationDTO> result = new ArrayList<>();
-	    
-	    try {
-	        List<Object[]> repositoryResponse = employeeRepository.getRegisterEmployeeInformation();
+		List<EmployeeInformationDTO> result = new ArrayList<>();
 
-	        for (Object[] row : repositoryResponse) {
-	            EmployeeInformationDTO employeeInformationDTO = new EmployeeInformationDTO();
-	            
-	            employeeInformationDTO.setId((Long) row[0]);
-	            employeeInformationDTO.setFullName((String) row[1]);
-	            employeeInformationDTO.setEmail((String) row[2]);
-	            employeeInformationDTO.setInitialStatus((String) row[3]);
-	            employeeInformationDTO.setCreationDate((Date) row[4]);
-	            employeeInformationDTO.setHrStatus((String) row[5]);
-	            employeeInformationDTO.setManagerStatus((String) row[6]);
-	            employeeInformationDTO.setLastInterviewAssign((String) row[7]);
-	            employeeInformationDTO.setRemarksByHr((String) row[8]);
-	            employeeInformationDTO.setRemarksByManager((String) row[9]);
-	            employeeInformationDTO.setProfileScreenRemarks((String) row[10]);
+		try {
+			List<Object[]> repositoryResponse = employeeRepository.getRegisterEmployeeInformation();
 
-	            result.add(employeeInformationDTO);
-	        }
+			for (Object[] row : repositoryResponse) {
+				EmployeeInformationDTO employeeInformationDTO = new EmployeeInformationDTO();
 
-	        log.info("Successfully fetched {} employee records", result.size());
+				employeeInformationDTO.setId((Long) row[0]);
+				employeeInformationDTO.setFullName((String) row[1]);
+				employeeInformationDTO.setEmail((String) row[2]);
+				employeeInformationDTO.setInitialStatus((String) row[3]);
+				employeeInformationDTO.setCreationDate((Date) row[4]);
+				employeeInformationDTO.setHrStatus((String) row[5]);
+				employeeInformationDTO.setManagerStatus((String) row[6]);
+				employeeInformationDTO.setLastInterviewAssign((String) row[7]);
+				employeeInformationDTO.setRemarksByHr((String) row[8]);
+				employeeInformationDTO.setRemarksByManager((String) row[9]);
+				employeeInformationDTO.setProfileScreenRemarks((String) row[10]);
 
-	    } catch (Exception e) {
-	        log.error("Error while fetching employee information", e);
-	        // Optionally rethrow or handle differently
-	    }
+				result.add(employeeInformationDTO);
+			}
 
-	    return result;
+			log.info("Successfully fetched {} employee records", result.size());
+
+		} catch (Exception e) {
+			log.error("Error while fetching employee information", e);
+			// Optionally rethrow or handle differently
+		}
+
+		return result;
 	}
+
 	@Override
 	public List<EmployeeExcelReportDto> getEmployeesDumpReportData(LocalDate startDate, LocalDate endDate) {
-	    List<Object[]> result = employeeRepository.getEmployeeDumpData();
-	    List<EmployeeExcelReportDto> dtos = new ArrayList<>();
+		List<Object[]> result = employeeRepository.getEmployeeDumpData();
+		List<EmployeeExcelReportDto> dtos = new ArrayList<>();
 
-	    for (Object[] row : result) {
-	        EmployeeExcelReportDto dto = new EmployeeExcelReportDto();
+		for (Object[] row : result) {
+			EmployeeExcelReportDto dto = new EmployeeExcelReportDto();
 
-	        dto.setId((Long) row[0]);
-	        dto.setFullName((String) row[1]);
-	        dto.setEmail((String) row[2]);
-	        dto.setJobProfile((String) row[3]);
-	        dto.setQualification((String) row[4]);
-	        dto.setMobileNo(row[5] != null ? ((Number) row[5]).longValue() : null);
-	        dto.setPermanentAddress((String) row[6]);
-	        dto.setCurrentAddress((String) row[7]);
-	        dto.setGender((String) row[8]);
-	        dto.setPreviousOrganisation((String) row[9]);
+			dto.setId((Long) row[0]);
+			dto.setFullName((String) row[1]);
+			dto.setEmail((String) row[2]);
+			dto.setJobProfile((String) row[3]);
+			dto.setQualification((String) row[4]);
+			dto.setMobileNo(row[5] != null ? ((Number) row[5]).longValue() : null);
+			dto.setPermanentAddress((String) row[6]);
+			dto.setCurrentAddress((String) row[7]);
+			dto.setGender((String) row[8]);
+			dto.setPreviousOrganisation((String) row[9]);
 //	        dto.setDob((Date) row[10]);
-	        dto.setDob(convertToDate(row[10]));
-	        dto.setMaritalStatus((String) row[11]);
-	        dto.setRefferal((String) row[12]);
-	        dto.setAadhaarNumber((String) row[13]);
-	        dto.setLanguages((String) row[14]);
-	        dto.setExperience(row[15] != null ? ((Number) row[15]).floatValue() : null);
-	        dto.setSource((String) row[16]);
-	        dto.setSubSource((String) row[17]);
+			dto.setDob(convertToDate(row[10]));
+			dto.setMaritalStatus((String) row[11]);
+			dto.setRefferal((String) row[12]);
+			dto.setAadhaarNumber((String) row[13]);
+			dto.setLanguages((String) row[14]);
+			dto.setExperience(row[15] != null ? ((Number) row[15]).floatValue() : null);
+			dto.setSource((String) row[16]);
+			dto.setSubSource((String) row[17]);
 
 //	        dto.setCreationDate((Date) row[18]);
-	        dto.setCreationDate(convertToDate(row[18]));
-	        dto.setInitialStatus((String) row[19]);
-	        dto.setProcessesStatus((String) row[20]);
-	        dto.setHrStatus((String) row[21]);
-	        dto.setManagerStatus((String) row[22]);
-	        dto.setLastInterviewAssin((String) row[23]);
-	        dto.setProfileScreenRemarks((String) row[24]);
-	        dto.setReMarksByHr((String) row[25]);
-	        dto.setReMarksByManager((String) row[26]);
+			dto.setCreationDate(convertToDate(row[18]));
+			dto.setInitialStatus((String) row[19]);
+			dto.setProcessesStatus((String) row[20]);
+			dto.setHrStatus((String) row[21]);
+			dto.setManagerStatus((String) row[22]);
+			dto.setLastInterviewAssin((String) row[23]);
+			dto.setProfileScreenRemarks((String) row[24]);
+			dto.setReMarksByHr((String) row[25]);
+			dto.setReMarksByManager((String) row[26]);
 //	        dto.setClientRound((String) row[27]);
 
-	        dto.setStatus((String) row[27]);
-	        dto.setHrName((String) row[28]);
-	        dto.setRemarksOnEveryStages((String) row[29]);
+			dto.setStatus((String) row[27]);
+			dto.setHrName((String) row[28]);
+			dto.setRemarksOnEveryStages((String) row[29]);
 //	        dto.setChangesDateTime((Date) row[30]);
-	        dto.setChangesDateTime(convertToDate(row[30]));
-	        if (dto.getCreationDate() != null) {
-	            LocalDate creationDate = dto.getCreationDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-	            if ((startDate == null || !creationDate.isBefore(startDate))
-	                    && (endDate == null || !creationDate.isAfter(endDate))) {
-	                dtos.add(dto);
-	            }
-	        }
-	    }
+			dto.setChangesDateTime(convertToDate(row[30]));
+			if (dto.getCreationDate() != null) {
+				LocalDate creationDate = dto.getCreationDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				if ((startDate == null || !creationDate.isBefore(startDate))
+						&& (endDate == null || !creationDate.isAfter(endDate))) {
+					dtos.add(dto);
+				}
+			}
+		}
 
-	    return dtos;
+		return dtos;
 	}
-
 
 	@Override
 	public ByteArrayOutputStream exportToRawExcel(List<EmployeeExcelReportDto> data) throws IOException {
@@ -597,7 +665,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 		return writeToOutputStream(workbook);
 	}
 
-	
 	@Override
 	public List<Object[]> getEmployeesDumpReportData(Date startDate, Date endDate) {
 		List<Object[]> result = employeeRepository.getEmployeeSeqDumpData(startDate, endDate);
@@ -669,27 +736,61 @@ public class EmployeeServiceImpl implements EmployeeService {
 //
 		return result;
 	}
-	
-	
+
 	@Override
 	public List<ManagerPageResponseDTO> getScheduleInterviewManagerPage(String uniqueCodeProcess) {
-	    List<Object[]> response = employeeRepository.getScheduleInterviewManagerPage(uniqueCodeProcess);
-	    List<ManagerPageResponseDTO> dtoList = new ArrayList<>();
-	    
-	    for (Object[] obj : response) {
-	        ManagerPageResponseDTO dto = new ManagerPageResponseDTO();
-	        dto.setId((Long) obj[0]);
-	        dto.setFullName((String) obj[1]);
-	        dto.setEmail((String) obj[2]);
-	        dto.setJobProfile((String) obj[3]);
-	        dto.setMobileNo((String) obj[4]);
-	        dto.setCreationDate((Date) obj[5]);
-	        dtoList.add(dto);
-	    }
-	    
-	    return dtoList;
+		List<Object[]> response = employeeRepository.getScheduleInterviewManagerPage(uniqueCodeProcess);
+		List<ManagerPageResponseDTO> dtoList = new ArrayList<>();
+
+		for (Object[] obj : response) {
+			ManagerPageResponseDTO dto = new ManagerPageResponseDTO();
+			dto.setId((Long) obj[0]);
+			dto.setFullName((String) obj[1]);
+			dto.setEmail((String) obj[2]);
+			dto.setJobProfile((String) obj[3]);
+			dto.setMobileNo((String) obj[4]);
+			dto.setCreationDate((Date) obj[5]);
+			dtoList.add(dto);
+		}
+
+		return dtoList;
 	}
-	
+
+	@Override
+	public List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location) {
+		log.info("Fetching employees with role: {} and location: {}", role, location);
+		try {
+			List<Object[]> employeeObjects = employeeRepository.findEmployeesByRoleAndLocation(role, location);
+			List<EmployeeDetailsOnManagerPageDTO> dtoList = new ArrayList<>();
+
+			for (Object[] obj : employeeObjects) {
+				EmployeeDetailsOnManagerPageDTO dto = new EmployeeDetailsOnManagerPageDTO(
+						(Long) obj[0],
+						(String) obj[1], 
+						(String) obj[2], 
+						(String) obj[3],
+						(Long)obj[4],
+						(String) obj[5],
+						(String)obj[6],
+						(Date) obj[7]
+						
+						
+						
+								
+						
+				);
+				dtoList.add(dto);
+			}
+
+			log.info("Successfully fetched {} employees", dtoList.size());
+			return dtoList;
+
+		} catch (Exception e) {
+			log.error("Error fetching employee details: {}", e.getMessage(), e);
+			throw new RuntimeException("Failed to fetch employee details", e);
+		}
+	}
+
 	public void exportToExcel(List<EmployeeExcelReportInSequenceDto> data, HttpServletResponse response)
 			throws IOException {
 		Workbook workbook = new XSSFWorkbook();
@@ -699,8 +800,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 		populateRowsWithEmployeeData(sheet, data);
 		writeToResponse(workbook, response);
 	}
-	
-	
 	private void createSeqReportExcelHeader(Sheet sheet) {
 		Row headerRow = sheet.createRow(0);
 		String[] headers = { "Employee ID", "Full Name", "Qualification", "Aadhaar Number", "Creation Date",
@@ -714,11 +813,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 			headerRow.createCell(i).setCellValue(headers[i]);
 		}
 	}
+
+
 	private void addStatusHistoryHeaders(Row headerRow, int columnOffSet, String... headers) {
 		for (int i = 0; i < headers.length; i++) {
 			headerRow.createCell(columnOffSet + i).setCellValue(headers[i]);
 		}
 	}
+
 	private void createDynamicStatusHistoryHeaders(Sheet sheet, List<EmployeeExcelReportInSequenceDto> data) {
 		int maxStatusHistorySize = data.stream().mapToInt(dto -> dto.getStatusHistory().size()).max().orElse(0);
 		Row headerRow = sheet.getRow(0);
@@ -754,8 +856,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			}
 		}
 	}
-	
-	
+
 	private void populateRowsWithEmployeeData(Sheet sheet, List<EmployeeExcelReportInSequenceDto> data) {
 		int rowNum = 1;
 		for (EmployeeExcelReportInSequenceDto dto : data) {
@@ -768,6 +869,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			populateStatusHistoryColumns(row, dto);
 		}
 	}
+
 	private void populateFixedColumns(Row row, EmployeeExcelReportInSequenceDto dto) {
 		row.createCell(0).setCellValue(dto.getId());
 		row.createCell(1).setCellValue(dto.getFullName());
@@ -798,6 +900,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 		row.createCell(26).setCellValue(dto.getSubSource());
 		row.createCell(27).setCellValue(dto.getWorkExp());
 	}
+
 	private void populateStatusHistoryColumns(Row row, EmployeeExcelReportInSequenceDto dto) {
 		for (int i = 0; i < dto.getStatusHistory().size(); i++) {
 			StatusHistoryExcelDto statusDto = dto.getStatusHistory().get(i);
@@ -809,12 +912,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 			row.createCell(columnOffset + 3).setCellValue(statusDto.getStatus());
 		}
 	}
+
 	private void writeToResponse(Workbook workbook, HttpServletResponse response) throws IOException {
 		response.setHeader("Content-Disposition", "attachment; filename=employees_report.xlsx");
 		workbook.write(response.getOutputStream());
 		workbook.close();
 	}
-	
+
 	private ByteArrayOutputStream writeToOutputStream(Workbook workbook) throws IOException {
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		workbook.write(byteArrayOutputStream);
@@ -834,54 +938,55 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 		for (int i = 0; i < columns.length; i++) {
 			header.createCell(i).setCellValue(columns[i]);
-		}	
+		}
 	}
 
-		private void populateRows(Sheet sheet, List<EmployeeExcelReportDto> data) {
-			int rowNum = 1;
-			for (EmployeeExcelReportDto dto : data) {
-				Row row = sheet.createRow(rowNum++);
-				populateRowWithData(row, dto);
-			}
+	private void populateRows(Sheet sheet, List<EmployeeExcelReportDto> data) {
+		int rowNum = 1;
+		for (EmployeeExcelReportDto dto : data) {
+			Row row = sheet.createRow(rowNum++);
+			populateRowWithData(row, dto);
 		}
-		private void populateRowWithData(Row row, EmployeeExcelReportDto dto) {
-			row.createCell(0).setCellValue(dto.getId());
-			row.createCell(1).setCellValue(dto.getFullName());
-			row.createCell(2).setCellValue(dto.getEmail());
-			row.createCell(3).setCellValue(dto.getJobProfile());
-			row.createCell(4).setCellValue(dto.getQualification());
-			row.createCell(5).setCellValue(dto.getMobileNo() != null ? dto.getMobileNo() : 0);
-			row.createCell(6).setCellValue(dto.getPermanentAddress() != null ? dto.getPermanentAddress() : "");
-			row.createCell(7).setCellValue(dto.getCurrentAddress() != null ? dto.getCurrentAddress() : "");
-			row.createCell(8).setCellValue(dto.getGender() != null ? dto.getGender() : "");
-			row.createCell(9).setCellValue(dto.getPreviousOrganisation() != null ? dto.getPreviousOrganisation() : "");
-			row.createCell(10).setCellValue(dto.getDob() != null ? dto.getDob().toString() : "N/A");
-			row.createCell(11).setCellValue(dto.getMaritalStatus() != null ? dto.getMaritalStatus() : "");
-			row.createCell(12).setCellValue(dto.getRefferal() != null ? dto.getRefferal() : "");
-			row.createCell(13).setCellValue(dto.getAadhaarNumber() != null ? dto.getAadhaarNumber() : "");
-			row.createCell(14).setCellValue(dto.getLanguages() != null ? dto.getLanguages() : "");
-			row.createCell(15).setCellValue(dto.getExperience() != null ? dto.getExperience() : 0);
-			row.createCell(16).setCellValue(dto.getSource() != null ? dto.getSource() : "");
-			row.createCell(17).setCellValue(dto.getSubSource() != null ? dto.getSubSource() : "");
-			row.createCell(18).setCellValue(dto.getInitialStatus() != null ? dto.getInitialStatus() : "");
-			row.createCell(19).setCellValue(dto.getHrStatus() != null ? dto.getHrStatus() : "");
-			row.createCell(20).setCellValue(dto.getReMarksByHr() != null ? dto.getReMarksByHr() : "");
-			row.createCell(21).setCellValue(dto.getProcessesStatus() != null ? dto.getProcessesStatus() : "");
-			row.createCell(22).setCellValue(dto.getManagerStatus() != null ? dto.getManagerStatus() : "");
-			row.createCell(23).setCellValue(dto.getReMarksByManager() != null ? dto.getReMarksByManager() : "");
+	}
+
+	private void populateRowWithData(Row row, EmployeeExcelReportDto dto) {
+		row.createCell(0).setCellValue(dto.getId());
+		row.createCell(1).setCellValue(dto.getFullName());
+		row.createCell(2).setCellValue(dto.getEmail());
+		row.createCell(3).setCellValue(dto.getJobProfile());
+		row.createCell(4).setCellValue(dto.getQualification());
+		row.createCell(5).setCellValue(dto.getMobileNo() != null ? dto.getMobileNo() : 0);
+		row.createCell(6).setCellValue(dto.getPermanentAddress() != null ? dto.getPermanentAddress() : "");
+		row.createCell(7).setCellValue(dto.getCurrentAddress() != null ? dto.getCurrentAddress() : "");
+		row.createCell(8).setCellValue(dto.getGender() != null ? dto.getGender() : "");
+		row.createCell(9).setCellValue(dto.getPreviousOrganisation() != null ? dto.getPreviousOrganisation() : "");
+		row.createCell(10).setCellValue(dto.getDob() != null ? dto.getDob().toString() : "N/A");
+		row.createCell(11).setCellValue(dto.getMaritalStatus() != null ? dto.getMaritalStatus() : "");
+		row.createCell(12).setCellValue(dto.getRefferal() != null ? dto.getRefferal() : "");
+		row.createCell(13).setCellValue(dto.getAadhaarNumber() != null ? dto.getAadhaarNumber() : "");
+		row.createCell(14).setCellValue(dto.getLanguages() != null ? dto.getLanguages() : "");
+		row.createCell(15).setCellValue(dto.getExperience() != null ? dto.getExperience() : 0);
+		row.createCell(16).setCellValue(dto.getSource() != null ? dto.getSource() : "");
+		row.createCell(17).setCellValue(dto.getSubSource() != null ? dto.getSubSource() : "");
+		row.createCell(18).setCellValue(dto.getInitialStatus() != null ? dto.getInitialStatus() : "");
+		row.createCell(19).setCellValue(dto.getHrStatus() != null ? dto.getHrStatus() : "");
+		row.createCell(20).setCellValue(dto.getReMarksByHr() != null ? dto.getReMarksByHr() : "");
+		row.createCell(21).setCellValue(dto.getProcessesStatus() != null ? dto.getProcessesStatus() : "");
+		row.createCell(22).setCellValue(dto.getManagerStatus() != null ? dto.getManagerStatus() : "");
+		row.createCell(23).setCellValue(dto.getReMarksByManager() != null ? dto.getReMarksByManager() : "");
 //			row.createCell(24).setCellValue(dto.getCreationDate());
-			if (dto.getCreationDate() != null) {
-				row.createCell(24).setCellValue(dto.getCreationDate());
-			} else {
-				row.createCell(24).setCellValue("N/A");
-			}
-			row.createCell(25).setCellValue(dto.getLastInterviewAssin() != null ? dto.getLastInterviewAssin() : "");
-			row.createCell(26).setCellValue(dto.getProfileScreenRemarks() != null ? dto.getProfileScreenRemarks() : "");
-			row.createCell(27).setCellValue(dto.getStatus() != null ? dto.getStatus() : "");
-			row.createCell(28).setCellValue(dto.getHrName() != null ? dto.getHrName() : "");
-			row.createCell(29).setCellValue(dto.getRemarksOnEveryStages() != null ? dto.getRemarksOnEveryStages() : "");
-			row.createCell(30).setCellValue(dto.getChangesDateTime() != null ? dto.getChangesDateTime().toString() : "N/A");
+		if (dto.getCreationDate() != null) {
+			row.createCell(24).setCellValue(dto.getCreationDate());
+		} else {
+			row.createCell(24).setCellValue("N/A");
 		}
+		row.createCell(25).setCellValue(dto.getLastInterviewAssin() != null ? dto.getLastInterviewAssin() : "");
+		row.createCell(26).setCellValue(dto.getProfileScreenRemarks() != null ? dto.getProfileScreenRemarks() : "");
+		row.createCell(27).setCellValue(dto.getStatus() != null ? dto.getStatus() : "");
+		row.createCell(28).setCellValue(dto.getHrName() != null ? dto.getHrName() : "");
+		row.createCell(29).setCellValue(dto.getRemarksOnEveryStages() != null ? dto.getRemarksOnEveryStages() : "");
+		row.createCell(30).setCellValue(dto.getChangesDateTime() != null ? dto.getChangesDateTime().toString() : "N/A");
+	}
 
 	@Override
 	public boolean checkDuplicateEmail(String email) {
@@ -919,30 +1024,31 @@ public class EmployeeServiceImpl implements EmployeeService {
 				.findTopByEmployeeOrderByChangesDateTimeDesc(savedEmployeeEntity);
 		if (latestStatus != null) {
 
-			 EmployeeStatusDetails statusDetails = employeeStatusDetailsRepository
-		                .findByEmployee(savedEmployeeEntity);
 
-		        if (statusDetails != null) {
-		            // Update the initial status in EmployeeStatusDetails
-		            statusDetails.setInitialStatus(latestStatus.getStatus());
-		            
-		            // Save the updated EmployeeStatusDetails entity
-		            employeeStatusDetailsRepository.save(statusDetails);
-		        } else {
-		            // Handle the case where EmployeeStatusDetails does not exist; possibly create a new record
-		            EmployeeStatusDetails newStatusDetails = new EmployeeStatusDetails();
-		            newStatusDetails.setEmployee(savedEmployeeEntity);
-		            newStatusDetails.setInitialStatus(latestStatus.getStatus());
-		            // Set other fields as necessary
-		            
-		            employeeStatusDetailsRepository.save(newStatusDetails);
-		        }
+			EmployeeStatusDetails statusDetails = employeeStatusDetailsRepository.findByEmployee(savedEmployeeEntity);
+
+			if (statusDetails != null) {
+				// Update the initial status in EmployeeStatusDetails
+				statusDetails.setInitialStatus(latestStatus.getStatus());
+
+				// Save the updated EmployeeStatusDetails entity
+				employeeStatusDetailsRepository.save(statusDetails);
+			} else {
+				// Handle the case where EmployeeStatusDetails does not exist; possibly create a
+				// new record
+				EmployeeStatusDetails newStatusDetails = new EmployeeStatusDetails();
+				newStatusDetails.setEmployee(savedEmployeeEntity);
+				newStatusDetails.setInitialStatus(latestStatus.getStatus());
+				// Set other fields as necessary
+
+				employeeStatusDetailsRepository.save(newStatusDetails);
+			}
 		}
 	}
 
 	private void setStatusHistoryRecoredRemarksChecks(Long employeeId, StatusRequestDTO statusRequestDTO,
 			InterviewProcesses savedInterviewProcess) {
-		// TODO Auto-generated method stub
+
 		Employee employee = employeeRepository.findById(employeeId)
 				.orElseThrow(() -> new RuntimeException("Employee not found"));
 		StatusHistory statusHistory = new StatusHistory();
@@ -957,21 +1063,56 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	private Date convertToDate(Object obj) {
-	    if (obj instanceof Date) {
-	        return (Date) obj;
-	    } else if (obj instanceof String) {
-	        try {
-	            // Adjust the pattern if your date string includes time
-	            return new SimpleDateFormat("yyyy-MM-dd").parse((String) obj);
-	        } catch (ParseException e) {
-	            e.printStackTrace();
-	        }
-	    }
-	    return null;
+		if (obj instanceof Date) {
+			return (Date) obj;
+		} else if (obj instanceof String) {
+			try {
+				// Adjust the pattern if your date string includes time
+				return new SimpleDateFormat("yyyy-MM-dd").parse((String) obj);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 
-	
+	@Override
+	public EmployeeDto submitResponseForReScreeningProfile(Long employeeId, StatusRequestDTO statusRequestDTO) {
+	    try {
+	        log.info("Submitting response for re-screening for employeeId: {}", employeeId);
 
+	        // Fetch employee status details
+	        EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository
+	            .findByEmployeeId(employeeId)
+	            .orElseThrow(() -> {
+	                log.error("EmployeeStatusDetails not found for employeeId: {}", employeeId);
+	                return new RuntimeException("EmployeeStatusDetails not found");
+	            });
 
+	        // Clear HR status
+	        employeeStatusDetails.setHrStatus(null);
+	        employeeStatusDetailsRepository.save(employeeStatusDetails);
+	        log.info("Cleared HR status for employeeId: {}", employeeId);
 
+	        // Update status history and remarks
+	        setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, null);
+	        log.info("Status history recorded for employeeId: {}", employeeId);
+
+	        // Fetch and return updated EmployeeDto
+	        Employee updatedEmployee = employeeRepository.findById(employeeId)
+	            .orElseThrow(() -> {
+	                log.error("Employee not found with ID: {}", employeeId);
+	                return new RuntimeException("Employee not found");
+	            });
+
+	        EmployeeDto employeeDto = modelMapper.map(updatedEmployee, EmployeeDto.class);
+	        log.info("Returning updated EmployeeDto for employeeId: {}", employeeId);
+
+	        return employeeDto;
+
+	    } catch (Exception e) {
+	        log.error("Error occurred while submitting response for re-screening for employeeId: {}", employeeId, e);
+	        throw new RuntimeException("Failed to submit response for re-screening", e);
+	    }
+	}
 }

@@ -2,11 +2,10 @@ package com.eos.admin.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-
-import java.net.URLEncoder;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -25,16 +24,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.eos.admin.dto.EmployeeDetailsOnManagerPageDTO;
 import com.eos.admin.dto.EmployeeDto;
 import com.eos.admin.dto.EmployeeExcelReportDto;
-import com.eos.admin.dto.EmployeeExcelReportInSequenceDto;
 import com.eos.admin.dto.EmployeeInformationDTO;
 import com.eos.admin.dto.EmployeeStatusHistroyDTO;
-import com.eos.admin.dto.ManagerPageResponseDTO;
 import com.eos.admin.dto.ProfileScreanRejectedDTO;
 import com.eos.admin.dto.ProfileScreaningResponseDto;
 import com.eos.admin.dto.RejectPageEmployeeDTO;
@@ -46,13 +45,10 @@ import com.eos.admin.exception.InvalidInputException;
 import com.eos.admin.exception.ResourceNotFoundException;
 import com.eos.admin.service.EmployeeService;
 
-
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestParam;
 
-@CrossOrigin("*")
+@CrossOrigin("http://localhost:5173")
 @Slf4j
 @RestController
 @RequestMapping("/api/employees")
@@ -61,7 +57,7 @@ public class EmployeeController {
 	@Value("${project.file.upload-dir}")
 	private String path;
 
-	private EmployeeService employeeService;
+	private final EmployeeService employeeService;
 
 	public EmployeeController(EmployeeService employeeService) {
 		super();
@@ -69,32 +65,36 @@ public class EmployeeController {
 	}
 
 	@PostMapping("/createEmployee")
-	public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestPart("employee") EmployeeDto employeeDto,
-			@RequestPart("image") MultipartFile image) {
+
+	public ResponseEntity<EmployeeDto> createEmployee( @RequestPart("employee") EmployeeDto employeeDto,
+			@RequestPart("image") List<MultipartFile> images) {
 		log.info("Employee request data recived {}", employeeDto);
-		log.info("Addhaar file from user is recived {}", image);
+		log.info("Addhaar file from user is recived {}", images);
 		try {
-			if (employeeDto == null || image == null || image.isEmpty()) {
-				log.warn("Employee request data not recived {} {}", employeeDto, image);
+			if (employeeDto == null || images == null || images.isEmpty()) {
+				log.warn("Employee request data not recived {} {}", employeeDto, images);
 				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 			}
-			log.info("Received image size: {} bytes", image.getSize());
-			EmployeeDto saveResponse = employeeService.createEmployee(employeeDto, image, path);
+			 for (MultipartFile image : images) {
+		            log.info("Received image size: {} bytes", image.getSize());
+		            // You can process the files here as required
+		        }
+		
+			EmployeeDto saveResponse = employeeService.createEmployee(employeeDto, images, path);
 			log.info("Successfully created employee with ID: {}", saveResponse.getId());
-			return new ResponseEntity<EmployeeDto>(saveResponse, HttpStatus.CREATED);
-
+			return new ResponseEntity<>(saveResponse, HttpStatus.CREATED);
 		} catch (Exception e) {
 			log.error("Error occurred while creating employee: {}", e.getMessage(), e);
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	@GetMapping("/listOfEmpPorfileScreaning")
-	public ResponseEntity<List<ProfileScreaningResponseDto>> getListOfEmployeesProfileScreaning() {
+	@GetMapping("/listOfEmpPorfileScreaning/{location}")
+	public ResponseEntity<List<ProfileScreaningResponseDto>> getListOfEmployeesProfileScreaning(@PathVariable("location") String location) {
 		log.info("Request received to get the list of employees for profile screening.");
 		try {
-			List<ProfileScreaningResponseDto> response = employeeService.getListOfEmployeesOnProfileScreanig();
-			return ResponseEntity.ok(response);
+			List<ProfileScreaningResponseDto> response = employeeService.getListOfEmployeesOnProfileScreanig(location);
+			return ResponseEntity.ok(response); 
 		} catch (Exception e) {
 			log.error("Error occurred while fetching employees for profile screening: ", e);
 			return ResponseEntity.status(500).body(null);
@@ -157,11 +157,11 @@ public class EmployeeController {
 
 	}
 
-	@GetMapping("/listOfEmpOnSchedulePage")
-	public ResponseEntity<?> getListOfEmployeeOnSchedulePage() {
+	@GetMapping("/listOfEmpOnSchedulePage/{location}")
+	public ResponseEntity<?> getListOfEmployeeOnSchedulePage(@PathVariable("location") String location ) {
 		try {
 			log.info("Request Recive for featch list of employee for schedule Interview Page");
-			List<ScheduleInterviewPageRequestDTO> request = employeeService.getListOfEmployeesOnScheduleInterviewPage();
+			List<ScheduleInterviewPageRequestDTO> request = employeeService.getListOfEmployeesOnScheduleInterviewPage(location);
 			return ResponseEntity.ok(request);
 		} catch (Exception e) {
 			log.error("Error occurred while fetching employee schedule interview page ");
@@ -185,19 +185,37 @@ public class EmployeeController {
 			throw new InvalidInputException("Process Name is required");
 
 		}
+		
+		if(scheduleInterviewOnProcessDTO.getGrade() == null
+			|| scheduleInterviewOnProcessDTO.getGrade().trim().isEmpty()) {
+				throw new InvalidInputException("Grade is require");
+			}
+		if(scheduleInterviewOnProcessDTO.getCompanyType() == null
+				|| scheduleInterviewOnProcessDTO.getCompanyType().trim().isEmpty()) {
+					throw new InvalidInputException("company Type is require");
+				}
+		if(scheduleInterviewOnProcessDTO.getDepartment() == null
+				|| scheduleInterviewOnProcessDTO.getDepartment().trim().isEmpty()) {
+					throw new InvalidInputException("Department is require");
+				}
 		if (scheduleInterviewOnProcessDTO.getJobProfile() == null
 				|| scheduleInterviewOnProcessDTO.getJobProfile().trim().isEmpty()) {
-			throw new InvalidInputException("job Profile is require");
+			throw new InvalidInputException(" Designation is require");
 		}
+//		if(scheduleInterviewOnProcessDTO.getDesignation() == null
+//				|| scheduleInterviewOnProcessDTO.getDesignation().trim().isEmpty()) {
+//					throw new InvalidInputException("Designation is require");
+//				}
 		employeeService.updateRemarks(employeeId, scheduleInterviewOnProcessDTO, RemarksType.SCHEDULE);
 		return ResponseEntity.ok().build();
 
 	}
 
-	@GetMapping("/rejectByManager")
-	public ResponseEntity<?> getListOfEmployeeRejectedByManager() {
+	@GetMapping("/rejectByManager/{location}")
+	public ResponseEntity<?> getListOfEmployeeRejectedByManager(@PathVariable("location") String location) {
 		try {
-			List<RejectPageEmployeeDTO> request = employeeService.getListOfEmployeeRejectedByManager();
+			List<RejectPageEmployeeDTO> request = employeeService.getListOfEmployeeRejectedByManager(location);
+
 			return ResponseEntity.ok(request);
 		} catch (Exception e) {
 			log.error("Error occurred while fetching employee  rejected interview page ");
@@ -223,11 +241,12 @@ public class EmployeeController {
 		}
 	}
 
-	@GetMapping("/selectEmployee")
-	public ResponseEntity<?> getListOfEmployeeSelected() {
+
+	@GetMapping("/selectEmployee/{location}")
+	public ResponseEntity<?> getListOfEmployeeSelected(@PathVariable("location") String location) {
 		try {
 			log.info("Fetching list of selected employees...");
-			List<SelectedEmployeeDTO> response = employeeService.getAllSelectedInterviewList();
+			List<SelectedEmployeeDTO> response = employeeService.getAllSelectedInterviewList(location);
 	        log.info("Successfully fetched {} selected employees", response.size());
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
@@ -238,11 +257,12 @@ public class EmployeeController {
 
 	}
 	
-	@GetMapping("/rejectedbyProfileScreaning")
-	public ResponseEntity<?> getListRejectedOnProfileScreanPage() {
+	@GetMapping("/rejectedbyProfileScreaning/{location}")
+	public ResponseEntity<?> getListRejectedOnProfileScreanPage(@PathVariable("location") String location) {
+		
 		try {
-			log.info("Fetching list of rejected on profile Screaning employees...");
-		 List<ProfileScreanRejectedDTO> response = employeeService.getListOfProfileScreaningRejected();	
+			log.info("Fetching list of rejected on profile Screaning employ ees...");
+		 List<ProfileScreanRejectedDTO> response = employeeService.getListOfProfileScreaningRejected(location);	
 		 log.info("Successfully fetched {} rected  employees", response.size());
 		 return ResponseEntity.ok(response);
 		}catch (Exception e) {
@@ -253,6 +273,22 @@ public class EmployeeController {
 		
 	}
 	
+	@PutMapping("/submitResponseForReScreening/{employeeId}")
+	public ResponseEntity<?> submitResponseForReScreeningProfile(
+	        @PathVariable("employeeId") Long employeeId,
+	        @RequestBody StatusRequestDTO statusRequestDTO) {
+	    try {
+	        log.info("API called to submit re-screening response for employeeId: {}", employeeId);
+
+	        EmployeeDto updatedEmployee = employeeService.submitResponseForReScreeningProfile(employeeId, statusRequestDTO);
+
+	        return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
+	    } catch (Exception e) {
+	        log.error("Failed to submit response for re-screening for employeeId: {}", employeeId, e);
+	        return new ResponseEntity<>("Failed to submit response for re-screening: " + e.getMessage(),
+	                HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
 	@GetMapping("/getInfoOfEmployee")
 	public ResponseEntity<?> getEmployeeInformation() {
 		
@@ -267,6 +303,44 @@ public class EmployeeController {
 		
 	}
 	
+
+    @GetMapping("/getAllEmployeeOnManagersPage/{role}/{location}")
+    public ResponseEntity<?> managerPageEmployeedetailsOnRole(@PathVariable("role") String role, @PathVariable("location") String location) {
+        log.info("Received request for employees by role: {}, location: {}", role, location);
+        try {
+            List<EmployeeDetailsOnManagerPageDTO> employees = employeeService.getAllResponseValueOnProcessType(role, location);
+            return ResponseEntity.ok(employees);
+        } catch (Exception e) {
+            log.error("Exception in fetching manager page employee details", e);
+            return ResponseEntity.internalServerError().body("Something went wrong while fetching employee data.");
+        }
+    }
+	
+    @PutMapping("/managerPageResponseSubmit/{employeeId}")
+    public ResponseEntity<?> managerPageResponseSubmit(
+            @PathVariable("employeeId") Long employeeId,
+            @RequestBody StatusRequestDTO statusRequestDTO) {
+
+        if (statusRequestDTO.getNewStatus() == null || statusRequestDTO.getNewStatus().trim().isBlank()) {
+            return ResponseEntity.badRequest().body("New status is required");
+        }
+
+        if (statusRequestDTO.getResponseSubmitbyName() == null || statusRequestDTO.getResponseSubmitbyName().trim().isBlank()) {
+            return ResponseEntity.badRequest().body("Submitter name is required");
+        }
+
+        if (statusRequestDTO.getRemarks() == null || statusRequestDTO.getRemarks().trim().isBlank()) {
+            return ResponseEntity.badRequest().body("Remarks are required");
+        }
+
+        try {
+            employeeService.updateRemarks(employeeId, statusRequestDTO, RemarksType.MANAGER);
+            return ResponseEntity.ok("Remarks updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to update remarks: " + e.getMessage());
+        }
+    }
+    
 	@GetMapping("/reportData")
 	public ResponseEntity<byte[]> dumpReportData(
 			@RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
@@ -277,7 +351,7 @@ public class EmployeeController {
 		headers.add("Content-Disposition", "attachment; filename=Employee_Report.xlsx");
 		return new ResponseEntity<>(byteArrayOutputStream.toByteArray(), headers, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/export")
 	public void  exportToExcel(@RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
 			@RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate, HttpServletResponse response) throws IOException
@@ -331,6 +405,8 @@ public class EmployeeController {
         workbook.write(response.getOutputStream());
         workbook.close();
     }
+	/**
+>>>>>>> features/vendor
 	@GetMapping("/getScheduleInterviewManager/{uniqueCodeProcess}")
 	public ResponseEntity<?> getScheduleInterviewManager(@PathVariable("uniqueCodeProcess") String uniqueCodeProcess){
 		try {
@@ -343,4 +419,8 @@ public class EmployeeController {
 	
 		
 	}
+<<<<<<< HEAD
+=======
+	*/
+
 }

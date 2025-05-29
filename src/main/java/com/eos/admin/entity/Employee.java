@@ -32,13 +32,13 @@ public class Employee {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@Column(name = "full_name")
 	private String fullName;
-	
-	@Column(name = "email", nullable = false , unique = true)
+
+	@Column(name = "email", nullable = false, unique = true)
 	private String email;
-	
+
 	@Column(name = "job_profile")
 	private String jobProfile;
 
@@ -59,80 +59,59 @@ public class Employee {
 
 	@Column(name = "previous_Organisation")
 	private String previousOrganisation;
-	
 	@Column(name = "dob")
 	private Date dob;
 
 	@Column(name = "marital_status")
 	private String maritalStatus;
-	
+
 	@Column(name = "refferal")
 	private String refferal;
-	
-	@Column(name = "aadhaar_number",nullable = false, unique = true)
+
+	@Column(name = "aadhaar_number", nullable = false, unique = true)
 	private String aadhaarNumber;
-	
-	@Column(name = "languages")
-	private String  languages;
-	
-	@Column(name ="experience")
+
+	@Column(name = "experience")
 	private Float experience;
-	
+
 	@Column(name = "source")
 	private String source;
-	
+
 	@Column(name = "sub_source")
 	private String subSource;
 
 	@Column(name = "aadhar_filename")
 	private String aadharFilename;
-	
+
+
 	@Column(name = "creation_date")
 	private Date creationDate;
-	
+
 	@OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JsonManagedReference
 	private List<StatusHistory> statusHistories;
-	
+
 	@JsonManagedReference
 	@OneToMany(mappedBy = "employee", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private List<InterviewProcesses> interviewProcesses;
-	
+
 	@OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private EmployeeStatusDetails employeeStatusDetails;
-	
-//	@Column(name = "initial_status")
-//	private String initialStatus;
-//	
-//	@Column(name = "processes_status")
-//	private String processesStatus;
-//	
-//	@Column(name = "hr_status")
-//	private String hrStatus;
-	
-//	@Column(name = "manager_status")
-//	private String managerStatus;
-	
-//	@Column(name = "last_Interview_Assin")
-//	private String lastInterviewAssin;
-//	
-//	@Column(name = "reMarksByHr")
-//	private String reMarksByHr;
-	
-//	@Column(name = "reMarksByManager")
-//	private String reMarksByManager;
-	
-//	@Column(name = "profileScreenRemarks")
-//	private String profileScreenRemarks;
-	
-	@Column(name = "work_Exp",nullable = false)
+	private EmployeeStatusDetails employeeStatusDetails;
+
+	@OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private OurEmployees ourEmployees;
+
+	@OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<Language> language;
+
+	@Column(name = "work_Exp", nullable = false)
 	private String workExp;
-	
-//	@Column(name = "client_Round")
-//	private String clientRound;
-	
+
+	@Column(name = "appliedLocation")
+	private String appliedlocation;
+
 	@PrePersist
 	protected void onCreate() {
-	    creationDate = new Date();
+		creationDate = new Date();
 	}
 }

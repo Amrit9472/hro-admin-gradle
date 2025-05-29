@@ -28,14 +28,25 @@ public class JWTUtilsImpl {
 	    }
 	    
 	    public String generateToken(UserDetails userDetails) {
+
+	    	  HashMap<String, Object> claims = new HashMap<>();
+	    	    claims.put("authorities", userDetails.getAuthorities().stream()
+	    	        .map(auth -> auth.getAuthority())
+	    	        .toList());
 	    	return Jwts.builder()
+	    			.claims(claims) 
 	    			.subject(userDetails.getUsername())
 	    			.issuedAt(new Date(System.currentTimeMillis()))
 	    			.expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 	    			.signWith(Key)
 	    			.compact();
 	    }
-	    public String generateRefreshToken(HashMap<String, Object> claims, UserDetails userDetails) {
+
+	    public String generateRefreshToken(UserDetails userDetails) {
+	    	HashMap<String, Object> claims = new HashMap<>();
+    	    claims.put("authorities", userDetails.getAuthorities().stream()
+    	        .map(auth -> auth.getAuthority())
+    	        .toList());
 	    	return Jwts.builder()
 	    			.claims(claims)
 	    			.subject(userDetails.getUsername())
@@ -62,4 +73,10 @@ public class JWTUtilsImpl {
 			// TODO Auto-generated method stub
 			return extractClaims(token, Claims:: getExpiration).before(new Date());
 		}
+
+		
+		public Claims extractAllClaims(String token) {
+		    return Jwts.parser().verifyWith(Key).build().parseSignedClaims(token).getPayload();
+		}
+
 }

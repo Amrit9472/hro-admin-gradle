@@ -28,6 +28,7 @@ public class ReqRes {
 	private String processCode;
 	private String uniqueCode;
 	private OurUsers ourUsers;
+	private String company;
 	private List<OurUsers> ourUserList;
-
+	private String address;
 }

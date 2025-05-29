@@ -26,12 +26,12 @@ logging:
 project:
   image: images/
   file:
-    upload-dir: C:/Users/Bot_25/Desktop/Documents/AadharFileUpload
+    upload-dir: C:/Users/Athang_y/Desktop/AadharFileUpload
 
 cors:
    allowed:
     origins: 
-      - http://localhost:3001
+      - http://localhost:5173
       
 
 

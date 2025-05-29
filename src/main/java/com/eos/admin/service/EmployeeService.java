@@ -5,9 +5,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-
 import org.springframework.web.multipart.MultipartFile;
-
+import com.eos.admin.dto.EmployeeDetailsOnManagerPageDTO;
 import com.eos.admin.dto.EmployeeDto;
 import com.eos.admin.dto.EmployeeExcelReportDto;
 import com.eos.admin.dto.EmployeeExcelReportInSequenceDto;
@@ -25,27 +24,28 @@ import com.eos.admin.enums.RemarksType;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface EmployeeService {
-	EmployeeDto createEmployee(EmployeeDto employeeDto, MultipartFile file, String path) throws IOException;
+
+	EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> images, String path) throws IOException;
 
 	boolean checkDuplicateEmail(String email);
 
 	boolean checkDuplicateAdhaarNo(String aadharNumber);
 
-	List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig();
+	List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location);
 
 	void updateRemarks(Long employeeId, StatusRequestDTO statusRequestDTO, RemarksType remarksType);
 
 	List<EmployeeStatusHistroyDTO> getListOfStatusHistoryRecords(Long employeeId);
 
-	List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage();
+	List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location);
 
-	List<RejectPageEmployeeDTO> getListOfEmployeeRejectedByManager();
+	List<RejectPageEmployeeDTO> getListOfEmployeeRejectedByManager(String location);
 
 	void assignInterviewProcessFromRejectPage(Long employeeId, StatusRequestDTO statusRequestDTO);
 
-	List<SelectedEmployeeDTO> getAllSelectedInterviewList();
+	List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location);
 
-	List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected();
+	List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location);
 
 	List<EmployeeInformationDTO> getEmployeeInformation();
 
@@ -58,4 +58,9 @@ public interface EmployeeService {
 	void exportToExcel(List<EmployeeExcelReportInSequenceDto> data, HttpServletResponse response) throws IOException;
 
 	List<ManagerPageResponseDTO> getScheduleInterviewManagerPage(String uniqueCodeProcess);
+
+
+	List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location);
+
+	EmployeeDto submitResponseForReScreeningProfile(Long employeeId, StatusRequestDTO statusRequestDTO);
 }
