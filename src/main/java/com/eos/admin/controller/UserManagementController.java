@@ -15,7 +15,7 @@ import com.eos.admin.dto.ChangePasswordRequest;
 import com.eos.admin.dto.ReqRes;
 import com.eos.admin.serviceImpl.UserManagementService;
 
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/auth")
 public class UserManagementController {

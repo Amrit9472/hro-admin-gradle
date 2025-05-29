@@ -137,7 +137,7 @@ public class VendorInfoServiceImpl implements VendorInfoService {
 	        String uploadDir = "uploads/cheque_images/";
 	        Files.createDirectories(Paths.get(uploadDir));
 
-	        String filename = System.currentTimeMillis() + "_" + chequeImage.getOriginalFilename();
+	        String filename = detailedFormDTO.getBankDetails().getAccountNumber() + "_" + chequeImage.getOriginalFilename();
 	        Path filepath = Paths.get(uploadDir, filename);
 	        Files.write(filepath, chequeImage.getBytes());
 
@@ -187,11 +187,11 @@ private void associateRelatedEntities(VendorInfo vendorInfo) {
     }
 }
 	
-    private String saveFile(MultipartFile file) throws IOException {
+    private String saveFile(DetailedFormDTO detailedFormDTO, MultipartFile file) throws IOException {
         String uploadDir = "uploads/cheque_images/";
         Files.createDirectories(Paths.get(uploadDir));
 
-        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String filename = detailedFormDTO.getBankDetails().getAccountNumber() + "_" + file.getOriginalFilename();
         Path filepath = Paths.get(uploadDir, filename);
         Files.write(filepath, file.getBytes());
 

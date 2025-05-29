@@ -1,14 +1,19 @@
 package com.eos.admin.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eos.admin.dto.CandidatesDTO;
@@ -19,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/candi")
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class CandidatesController {
 
 	private final CandidatesServiceImpl candidatesService;
@@ -61,4 +66,29 @@ public class CandidatesController {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@GetMapping("/byDateRange")
+	public ResponseEntity<List<CandidatesDTO>> getCandidatesByDateRange(
+	    @RequestParam(name = "startDate") String startDate,
+	    @RequestParam(name = "endDate") String endDate,
+	    @RequestParam(name = "email") String vendorEmail) {
+
+	    try {
+	        // Parse the date strings to LocalDate
+	        LocalDate start = LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE);
+	        LocalDate end = LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE);
+
+	        // Convert to LocalDateTime (start of the day for startDate, end of the day for endDate)
+	        LocalDateTime startOfDay = start.atStartOfDay();
+	        LocalDateTime endOfDay = end.atTime(23, 59, 59);
+
+	        // Fetch candidates from the service
+	        List<CandidatesDTO> candidates = candidatesService.findBySubmittedDateBetweenAndVendorEmail(startOfDay, endOfDay, vendorEmail);
+	        return new ResponseEntity<>(candidates, HttpStatus.OK);
+	    } catch (Exception e) {
+	        log.error("Error fetching candidates by date range and email: {}", e.getMessage(), e);
+	        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+
 }
