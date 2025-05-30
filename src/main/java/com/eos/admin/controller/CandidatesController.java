@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSender;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CandidatesController {
 
 	private final CandidatesServiceImpl candidatesService;
-
+	
 	@Autowired
 	public CandidatesController(CandidatesServiceImpl candidatesService) {
 		super();

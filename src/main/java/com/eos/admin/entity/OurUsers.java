@@ -51,5 +51,29 @@ public class OurUsers implements UserDetails {
 		// TODO Auto-generated method stub
 		return email;
 	}
+	
+	@Override
+	public boolean isEnabled() {
+	    // return true if user is enabled, false otherwise
+	    return true; // or your logic here
+	}
+	@Override
+	public boolean isCredentialsNonExpired() {
+	    // Return true if the user's credentials (password) are not expired
+	    // For now, you can return true if you don't have logic to check this
+	    return true;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		// TODO Auto-generated method stub
+		return true;
+	}
 
 }
