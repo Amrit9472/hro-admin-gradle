@@ -20,9 +20,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-@Table(
-    uniqueConstraints = @UniqueConstraint(columnNames = {"candiEmail", "scheme"})
-)
+//@Table(
+//    uniqueConstraints = @UniqueConstraint(columnNames = {"candiEmail", "scheme"})
+//)
 public class CandidatesEntity {
 
     @Id

@@ -51,6 +51,7 @@ public class SecurityConfig {
 		.cors(Customizer.withDefaults())
 		.authorizeHttpRequests(Request -> Request.requestMatchers("/auth/**", "/public/**", "/auth/vendor/**").permitAll().
 				requestMatchers("/api/employees/createEmployee").permitAll()
+				.requestMatchers("/api/employees/vendor").permitAll()
 				.requestMatchers("/admin/**").hasAnyAuthority(ROLE_ADMIN)
 				.requestMatchers("/user/**").hasAnyAuthority(ROLE_USER,ROLE_MANAGER)
 				.requestMatchers("/api/employees/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)

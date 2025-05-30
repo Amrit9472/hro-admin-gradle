@@ -87,6 +87,9 @@ public class Employee {
 	@Column(name = "creation_date")
 	private Date creationDate;
 
+	@Column(name = "stream")
+	private String stream;
+	
 	@OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JsonManagedReference
 	private List<StatusHistory> statusHistories;

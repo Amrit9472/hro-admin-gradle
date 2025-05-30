@@ -18,27 +18,22 @@ import lombok.Data;
 @Table(name = "ourusers")
 @Data
 public class OurUsers implements UserDetails {
-    
-	@Id 
+
+	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;	
-	private String email;	
-	private String name;	
-	private String password;	
-	private String city;	
-	private String role;	
-	private String process;	
+	private Integer id;
+	private String email;
+	private String name;
+	private String password;
+	private String city;
+	private String role;
+	private String process;
 	private String processCode;
 	private String uniqueCode;
-	
-	
-	
-	
-	
-	
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of(new SimpleGrantedAuthority(role))	;
+		return List.of(new SimpleGrantedAuthority(role));
 	}
 
 	@Override
@@ -53,6 +48,19 @@ public class OurUsers implements UserDetails {
 	}
 
 	@Override
+	public boolean isEnabled() {
+		// return true if user is enabled, false otherwise
+		return true; // or your logic here
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		// Return true if the user's credentials (password) are not expired
+		// For now, you can return true if you don't have logic to check this
+		return true;
+	}
+
+	@Override
 	public boolean isAccountNonExpired() {
 		// TODO Auto-generated method stub
 		return true;
@@ -60,18 +68,6 @@ public class OurUsers implements UserDetails {
 
 	@Override
 	public boolean isAccountNonLocked() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-
-	@Override
-	public boolean isCredentialsNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-
-	@Override
-	public boolean isEnabled() {
 		// TODO Auto-generated method stub
 		return true;
 	}

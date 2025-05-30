@@ -63,4 +63,6 @@ public interface EmployeeService {
 	List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location);
 
 	EmployeeDto submitResponseForReScreeningProfile(Long employeeId, StatusRequestDTO statusRequestDTO);
+	
+	String getVendorNameByEmployeeEmail(String empEmail);
 }

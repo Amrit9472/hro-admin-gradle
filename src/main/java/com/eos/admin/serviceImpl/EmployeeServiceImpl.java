@@ -46,6 +46,7 @@ import com.eos.admin.entity.Language;
 import com.eos.admin.entity.StatusHistory;
 import com.eos.admin.enums.RemarksType;
 import com.eos.admin.exception.DuplicateRecordException;
+import com.eos.admin.exception.EntityNotFoundException;
 import com.eos.admin.exception.InvalidInputException;
 import com.eos.admin.exception.ResourceNotFoundException;
 import com.eos.admin.repository.EmployeeRepository;
@@ -1114,5 +1115,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 	        log.error("Error occurred while submitting response for re-screening for employeeId: {}", employeeId, e);
 	        throw new RuntimeException("Failed to submit response for re-screening", e);
 	    }
+	}
+
+	@Override
+	public String getVendorNameByEmployeeEmail(String empEmail) {
+		log.info("Fetching vendor name for employee email: {}", empEmail);
+		String vendorName = employeeRepository.getVendorNameByEmployeeEmail(empEmail);
+		if (vendorName == null || vendorName.isEmpty()) {
+            log.warn("No vendor found for employee email: {}", empEmail);
+            throw new EntityNotFoundException("Vendor not found for employee email: " + empEmail);
+        }
+		log.info("Vendor name found: {} for employee email: {}", vendorName, empEmail);
+		return vendorName;
 	}
 }

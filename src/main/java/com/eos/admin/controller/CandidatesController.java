@@ -27,12 +27,15 @@ import lombok.extern.slf4j.Slf4j;
 @CrossOrigin(origins = "*")
 public class CandidatesController {
 
-    private final CandidatesServiceImpl candidatesService;
 
-    @Autowired
-    public CandidatesController(CandidatesServiceImpl candidatesService) {
-        this.candidatesService = candidatesService;
-    }
+	private final CandidatesServiceImpl candidatesService;
+	
+	@Autowired
+	public CandidatesController(CandidatesServiceImpl candidatesService) {
+		super();
+		this.candidatesService = candidatesService;
+	}
+
 
     @PostMapping
     public ResponseEntity<CandidatesDTO> createCandidate(@RequestBody CandidatesDTO candidatesDTO) {

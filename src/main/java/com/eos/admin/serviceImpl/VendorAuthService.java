@@ -1,10 +1,11 @@
 package com.eos.admin.serviceImpl;
 
-import java.util.HashMap;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +27,9 @@ public class VendorAuthService {
 
     @Autowired
     private JWTUtilsImpl jwtUtils;
+    
+    @Autowired
+    private JavaMailSender javaMailSender;
 
     @Autowired
     @Qualifier("vendorAuthenticationManager")
@@ -48,7 +52,7 @@ public class VendorAuthService {
         vendor.setRole("VENDOR");
 
         vendorRepository.save(vendor);
-
+        sendRegistrationEmail(vendor.getEmail(), request.getPassword());
         resp.setStatusCode(200);
         resp.setMessage("Vendor registered.");
         return resp;
@@ -86,4 +90,18 @@ public class VendorAuthService {
         return resp;
     }
 
+    
+    private void sendRegistrationEmail(String toEmail, String rawPassword) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(toEmail);
+            message.setSubject("Vendor Registration - Confirmation");
+            message.setText("Hi,\n\nYou are successfully registered as a vendor.\n\nLogin Details:\nEmail: " + toEmail + "\nPassword: " + rawPassword + "\n\nRegards,\nVendor Team");
+            message.setFrom("bi@eosglobe.com"); // Or your domain email
+
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
