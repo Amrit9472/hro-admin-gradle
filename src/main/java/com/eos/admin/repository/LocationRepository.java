@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import com.eos.admin.dto.NameTypeDTO;
 import com.eos.admin.entity.Location;
-import com.eos.admin.service.NameTypeProjection;
 
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long> {
@@ -31,6 +30,6 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 			    WHERE l.loaction_name = :location
 			)
 			""", nativeQuery = true)
-	List<NameTypeProjection> findNamesByLocationName(@Param("location") String location);
+	List<NameTypeDTO> findNamesByLocationName(@Param("location") String location);
 
 }
