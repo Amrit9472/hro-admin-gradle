@@ -59,7 +59,6 @@ public class Employee {
 
 	@Column(name = "previous_Organisation")
 	private String previousOrganisation;
-
 	@Column(name = "dob")
 	private Date dob;
 
@@ -83,6 +82,7 @@ public class Employee {
 
 	@Column(name = "aadhar_filename")
 	private String aadharFilename;
+
 
 	@Column(name = "creation_date")
 	private Date creationDate;
@@ -117,6 +117,4 @@ public class Employee {
 	protected void onCreate() {
 		creationDate = new Date();
 	}
-
-
 }

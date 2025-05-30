@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-
 import org.springframework.web.multipart.MultipartFile;
-
 import com.eos.admin.dto.EmployeeDetailsOnManagerPageDTO;
 import com.eos.admin.dto.EmployeeDto;
 import com.eos.admin.dto.EmployeeExcelReportDto;
@@ -26,6 +24,7 @@ import com.eos.admin.enums.RemarksType;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface EmployeeService {
+
 	EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> images, String path) throws IOException;
 
 	boolean checkDuplicateEmail(String email);
@@ -59,6 +58,7 @@ public interface EmployeeService {
 	void exportToExcel(List<EmployeeExcelReportInSequenceDto> data, HttpServletResponse response) throws IOException;
 
 	List<ManagerPageResponseDTO> getScheduleInterviewManagerPage(String uniqueCodeProcess);
+
 
 	List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location);
 

@@ -9,12 +9,10 @@ import com.eos.admin.entity.StatusHistory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class EmployeeDto {
-
 	private Long id;
 	private String fullName;
 	private String email;
@@ -46,5 +44,4 @@ public class EmployeeDto {
 	private Date creationDate;
 	private String lastInterviewAssin;
 	private String appliedLocation;
-
 }

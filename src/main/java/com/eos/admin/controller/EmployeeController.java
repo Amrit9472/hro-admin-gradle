@@ -65,6 +65,7 @@ public class EmployeeController {
 	}
 
 	@PostMapping("/createEmployee")
+
 	public ResponseEntity<EmployeeDto> createEmployee( @RequestPart("employee") EmployeeDto employeeDto,
 			@RequestPart("image") List<MultipartFile> images) {
 		log.info("Employee request data recived {}", employeeDto);
@@ -82,7 +83,6 @@ public class EmployeeController {
 			EmployeeDto saveResponse = employeeService.createEmployee(employeeDto, images, path);
 			log.info("Successfully created employee with ID: {}", saveResponse.getId());
 			return new ResponseEntity<>(saveResponse, HttpStatus.CREATED);
-
 		} catch (Exception e) {
 			log.error("Error occurred while creating employee: {}", e.getMessage(), e);
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -215,6 +215,7 @@ public class EmployeeController {
 	public ResponseEntity<?> getListOfEmployeeRejectedByManager(@PathVariable("location") String location) {
 		try {
 			List<RejectPageEmployeeDTO> request = employeeService.getListOfEmployeeRejectedByManager(location);
+
 			return ResponseEntity.ok(request);
 		} catch (Exception e) {
 			log.error("Error occurred while fetching employee  rejected interview page ");
@@ -239,6 +240,7 @@ public class EmployeeController {
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
 
 	@GetMapping("/selectEmployee/{location}")
 	public ResponseEntity<?> getListOfEmployeeSelected(@PathVariable("location") String location) {
@@ -287,7 +289,6 @@ public class EmployeeController {
 	                HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
-	
 	@GetMapping("/getInfoOfEmployee")
 	public ResponseEntity<?> getEmployeeInformation() {
 		
@@ -302,6 +303,7 @@ public class EmployeeController {
 		
 	}
 	
+
     @GetMapping("/getAllEmployeeOnManagersPage/{role}/{location}")
     public ResponseEntity<?> managerPageEmployeedetailsOnRole(@PathVariable("role") String role, @PathVariable("location") String location) {
         log.info("Received request for employees by role: {}, location: {}", role, location);
@@ -349,10 +351,7 @@ public class EmployeeController {
 		headers.add("Content-Disposition", "attachment; filename=Employee_Report.xlsx");
 		return new ResponseEntity<>(byteArrayOutputStream.toByteArray(), headers, HttpStatus.OK);
 	}
-	
-	
 
-	
 	@GetMapping("/export")
 	public void  exportToExcel(@RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
 			@RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate, HttpServletResponse response) throws IOException
@@ -407,6 +406,7 @@ public class EmployeeController {
         workbook.close();
     }
 	/**
+>>>>>>> features/vendor
 	@GetMapping("/getScheduleInterviewManager/{uniqueCodeProcess}")
 	public ResponseEntity<?> getScheduleInterviewManager(@PathVariable("uniqueCodeProcess") String uniqueCodeProcess){
 		try {
@@ -419,5 +419,8 @@ public class EmployeeController {
 	
 		
 	}
+<<<<<<< HEAD
+=======
 	*/
+
 }

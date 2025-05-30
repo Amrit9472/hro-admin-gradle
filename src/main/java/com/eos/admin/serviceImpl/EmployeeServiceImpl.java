@@ -23,7 +23,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.eos.admin.dto.EmployeeDetailsOnManagerPageDTO;
 import com.eos.admin.dto.EmployeeDto;
 import com.eos.admin.dto.EmployeeExcelReportDto;
@@ -57,8 +56,8 @@ import com.eos.admin.repository.StatusHistoryRepository;
 import com.eos.admin.service.EmployeeService;
 import com.eos.admin.service.FileService;
 import com.eos.admin.service.StatusHistoryService;
+import jakarta.servlet.http.HttpServletResponse;
 import com.google.zxing.Result;
-
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -102,7 +101,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 	@Override
 	@Transactional
 	public EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> file, String path) throws IOException {
-
 		// Check for duplicate email
 		if (checkDuplicateEmail(employeeDto.getEmail())) {
 			log.info("Starting employee creation process for: {}", employeeDto.getFullName());
@@ -115,6 +113,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 		}
 		// Upload the file
 		log.info("Uploading image for Aadhaar number: {}", employeeDto.getAadhaarNumber());
+
 		List<String> fileName = fileSercice.uploadImage(path, file, employeeDto.getAadhaarNumber());
 //		employeeDto.setAadharFilename(fileName);
 		log.info("File uploaded successfully with name: {}", fileName);
@@ -157,6 +156,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
+
 	public List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location) {
 		log.info("Entering getListOfEmployeesOnProfileScreaning method.");
 		List<ProfileScreaningResponseDto> employees = new ArrayList<>();
@@ -272,7 +272,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 				employeeStatusDetails.setCompanyType(statusRequestDTO.getCompanyType());
 				employeeStatusDetails.setDepartment(statusRequestDTO.getDepartment());
 //				employeeStatusDetails.set
-
 				employeeStatusDetailsRepository.save(employeeStatusDetails);
 				log.info("EmployeeStatusDetails saved successfully for employee ID: {}", employeeId);
 
@@ -452,6 +451,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public void assignInterviewProcessFromRejectPage(Long employeeId, StatusRequestDTO statusRequestDTO) {
+
 	    EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository
 	        .findByEmployeeId(employeeId)
 	        .orElseThrow(() -> new RuntimeException("EmployeeStatusDetails not found"));
@@ -800,7 +800,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 		populateRowsWithEmployeeData(sheet, data);
 		writeToResponse(workbook, response);
 	}
-
 	private void createSeqReportExcelHeader(Sheet sheet) {
 		Row headerRow = sheet.createRow(0);
 		String[] headers = { "Employee ID", "Full Name", "Qualification", "Aadhaar Number", "Creation Date",
@@ -814,6 +813,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			headerRow.createCell(i).setCellValue(headers[i]);
 		}
 	}
+
 
 	private void addStatusHistoryHeaders(Row headerRow, int columnOffSet, String... headers) {
 		for (int i = 0; i < headers.length; i++) {
@@ -1024,6 +1024,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 				.findTopByEmployeeOrderByChangesDateTimeDesc(savedEmployeeEntity);
 		if (latestStatus != null) {
 
+
 			EmployeeStatusDetails statusDetails = employeeStatusDetailsRepository.findByEmployee(savedEmployeeEntity);
 
 			if (statusDetails != null) {
@@ -1047,6 +1048,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	private void setStatusHistoryRecoredRemarksChecks(Long employeeId, StatusRequestDTO statusRequestDTO,
 			InterviewProcesses savedInterviewProcess) {
+
 		Employee employee = employeeRepository.findById(employeeId)
 				.orElseThrow(() -> new RuntimeException("Employee not found"));
 		StatusHistory statusHistory = new StatusHistory();

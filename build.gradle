@@ -1,6 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.1.5'
+
+	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id "org.sonarqube" version '6.0.1.5171'
 }
@@ -36,6 +37,8 @@ dependencies {
 	// ModelMapper
     implementation 'org.modelmapper:modelmapper:3.1.1'
 	
+	implementation 'org.springframework.boot:spring-boot-starter-mail:3.1.1'
+	
 	//implementation 'com.itextpdf:itext7-core:7.2.4'
 	implementation 'org.apache.pdfbox:pdfbox:2.0.27'
 	implementation 'com.itextpdf:itext7-core:7.2.3'
@@ -45,6 +48,7 @@ dependencies {
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
 	implementation 'org.modelmapper:modelmapper:3.2.0'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 	testImplementation 'org.mockito:mockito-core'
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 	
@@ -54,13 +58,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.32'
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
     
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	//developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	
+
 	// Tomcat (provided scope in Maven becomes 'providedRuntime' in Gradle)
     runtimeOnly 'org.springframework.boot:spring-boot-starter-tomcat'
 	
@@ -95,3 +99,4 @@ sonarqube {
         property "sonar.java.test.binaries", "build/classes/java/test"
     }
 }
+

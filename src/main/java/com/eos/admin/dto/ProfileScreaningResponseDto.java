@@ -22,5 +22,4 @@ public class ProfileScreaningResponseDto {
     private String gender;
     private Date creationDate;
     private List<String> languages;
-
 }

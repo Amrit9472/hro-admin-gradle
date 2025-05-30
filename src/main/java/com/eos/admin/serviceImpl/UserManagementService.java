@@ -1,14 +1,11 @@
 package com.eos.admin.serviceImpl;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +14,6 @@ import com.eos.admin.dto.ReqRes;
 import com.eos.admin.entity.OurUsers;
 import com.eos.admin.jwt.JWTUtilsImpl;
 import com.eos.admin.repository.UsersRepository;
-
 
 @Service
 public class UserManagementService {
@@ -33,7 +29,6 @@ public class UserManagementService {
 
 	@Autowired
 	private JWTUtilsImpl jwtUtilsImpl;
-	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
@@ -65,10 +60,10 @@ public class UserManagementService {
 			String processCode = registrationRequest.getProcessCode().trim();
 			ourUsers.setProcess(processName);
 			ourUsers.setProcessCode(processCode);
-			
-			String uniqueCode = processName +"-"+processCode;
+
+			String uniqueCode = processName + "-" + processCode;
 			ourUsers.setUniqueCode(uniqueCode);
-			
+
 			ourUsers.setPassword(passwordEncode.encode(registrationRequest.getPassword()));
 
 			OurUsers ourUsersResult = usersRepository.save(ourUsers);
@@ -151,7 +146,6 @@ public class UserManagementService {
 //	    return response;
 //	}
 
-
 	public ReqRes changePassword(ChangePasswordRequest changePasswordRequest) {
 		ReqRes resp = new ReqRes();
 		try {
@@ -159,47 +153,48 @@ public class UserManagementService {
 			String oldPassWord = changePasswordRequest.getOldPassword();
 			String newPassWord = changePasswordRequest.getNewPassword();
 			String confirmPassword = changePasswordRequest.getConfirmPassword();
-			
-			if(email != null && !email.isEmpty() && oldPassWord != null && !oldPassWord.isEmpty() && newPassWord != null && !newPassWord.isEmpty()
-				&& confirmPassword != null && !confirmPassword.isEmpty()) {
-				
-				
-				if (!newPassWord.equals(confirmPassword)) {  // Check if newPassword and confirmPassword match
-	                resp.setStatusCode(400);
-	                resp.setError("New password and confirm password do not match");
-	                return resp;
-	            }
-				
+
+			if (email != null && !email.isEmpty() && oldPassWord != null && !oldPassWord.isEmpty()
+					&& newPassWord != null && !newPassWord.isEmpty() && confirmPassword != null
+					&& !confirmPassword.isEmpty()) {
+
+				if (!newPassWord.equals(confirmPassword)) { // Check if newPassword and confirmPassword match
+					resp.setStatusCode(400);
+					resp.setError("New password and confirm password do not match");
+					return resp;
+				}
+
 				Optional<OurUsers> existingUser = usersRepository.findByEmail(email);
-				if(existingUser.isPresent()) {
+				if (existingUser.isPresent()) {
 					OurUsers user = existingUser.get();
-		               if (passwordEncoder.matches(oldPassWord, user.getPassword())) {
-		                    // Update the password
-		                    user.setPassword(passwordEncoder.encode(newPassWord));
-		                    usersRepository.save(user);
+					if (passwordEncoder.matches(oldPassWord, user.getPassword())) {
+						// Update the password
+						user.setPassword(passwordEncoder.encode(newPassWord));
+						usersRepository.save(user);
 
-		                    resp.setMessage("Password changed successfully");
-		                    resp.setStatusCode(200);
-		                }else {
-		                    resp.setStatusCode(400);
-		                    resp.setError("Old password is incorrect");
-		                }
-		               }else {
-		                	resp.setStatusCode(404);
-		                	resp.setError("User not Found");
-		                }}else {
-		                    resp.setStatusCode(400);
-		                    resp.setError("All fields are required");
-		                }
-		                	
-		               
-				}catch (Exception e) {
-			        resp.setStatusCode(500);
-			        resp.setError("An error occurred: " + e.getMessage());
-			    }
+						resp.setMessage("Password changed successfully");
+						resp.setStatusCode(200);
+					} else {
+						resp.setStatusCode(400);
+						resp.setError("Old password is incorrect");
+					}
+				} else {
+					resp.setStatusCode(404);
+					resp.setError("User not Found");
+				}
+			} else {
+				resp.setStatusCode(400);
+				resp.setError("All fields are required");
+			}
 
-      return resp;
+		} catch (Exception e) {
+			resp.setStatusCode(500);
+			resp.setError("An error occurred: " + e.getMessage());
+		}
+
+		return resp;
 	}
+
 	private String formattedString(String string) {
 
 		if (string != null && !string.isEmpty()) {
@@ -210,8 +205,8 @@ public class UserManagementService {
 	}
 
 	public List<String> getMyProcessName() {
-            List<String> processes = usersRepository.findDistinctProcesses();
-        return processes ;
+		List<String> processes = usersRepository.findDistinctProcesses();
+		return processes;
 	}
 
 }

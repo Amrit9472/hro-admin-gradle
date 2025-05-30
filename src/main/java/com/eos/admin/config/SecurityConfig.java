@@ -20,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.eos.admin.serviceImpl.OurUserDetailsServiceImpl;
+
 import com.eos.admin.serviceImpl.VendorUserDetailsServiceImpl;
 
 
@@ -73,6 +74,7 @@ public class SecurityConfig {
 		daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
 		return daoAuthenticationProvider;
 	}
+
 	@Bean
 	public AuthenticationProvider vendorAuthenticationProvider() {
 	    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -86,6 +88,7 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 	
+
 //	@Bean
 //	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
 //		return authenticationConfiguration.getAuthenticationManager();
@@ -103,5 +106,4 @@ public class SecurityConfig {
 	    public AuthenticationManager vendorAuthenticationManager() {
 	        return new ProviderManager(vendorAuthenticationProvider());
 	    }
-	
 }

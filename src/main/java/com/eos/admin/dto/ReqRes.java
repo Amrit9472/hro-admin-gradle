@@ -31,5 +31,4 @@ public class ReqRes {
 	private String company;
 	private List<OurUsers> ourUserList;
 	private String address;
-
 }
