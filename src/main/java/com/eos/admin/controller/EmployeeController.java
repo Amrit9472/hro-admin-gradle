@@ -406,7 +406,6 @@ public class EmployeeController {
         workbook.close();
     }
 	/**
->>>>>>> features/vendor
 	@GetMapping("/getScheduleInterviewManager/{uniqueCodeProcess}")
 	public ResponseEntity<?> getScheduleInterviewManager(@PathVariable("uniqueCodeProcess") String uniqueCodeProcess){
 		try {
@@ -416,11 +415,15 @@ public class EmployeeController {
 			return new ResponseEntity<>("An unexpected error occurred: " + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	
 		
 	}
-<<<<<<< HEAD
-=======
+
 	*/
 
+	 @GetMapping("/vendor")
+	    public ResponseEntity<String> getVendorNameByEmployeeEmail(@RequestParam("email") String email) {
+	        log.info("Received request to fetch vendor name for employee email: {}", email);
+	        String vendorName = employeeService.getVendorNameByEmployeeEmail(email);
+	        return ResponseEntity.ok(vendorName);
+	    }
 }
