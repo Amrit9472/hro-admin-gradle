@@ -134,7 +134,7 @@ public class VendorInfoServiceImpl implements VendorInfoService {
 
 	private String saveChequeImageAndSetPath(DetailedFormDTO detailedFormDTO, MultipartFile chequeImage) throws IOException {
 	    if (chequeImage != null && !chequeImage.isEmpty()) {
-	        String uploadDir = "uploads/cheque_images/";
+	        String uploadDir = "C:\\Users\\Athang_y\\Desktop\\uploads";
 	        Files.createDirectories(Paths.get(uploadDir));
 
 	        String filename = detailedFormDTO.getBankDetails().getAccountNumber() + "_" + chequeImage.getOriginalFilename();
