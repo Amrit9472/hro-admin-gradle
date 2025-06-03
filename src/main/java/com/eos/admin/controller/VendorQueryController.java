@@ -1,6 +1,7 @@
 package com.eos.admin.controller;
 
 import com.eos.admin.dto.VendorQueryDTO;
+import com.eos.admin.repository.VendorRepository;
 import com.eos.admin.service.QueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,9 @@ public class VendorQueryController {
 
     @Autowired
     private QueryService queryService;
+    
+    @Autowired
+    private VendorRepository vendorRepository;
 
     @PostMapping("/raisequery")
     public ResponseEntity<String> raiseQuery(@RequestBody VendorQueryDTO queryDTO) {

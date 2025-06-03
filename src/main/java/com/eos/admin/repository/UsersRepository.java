@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.eos.admin.entity.OurUsers;
@@ -17,5 +18,7 @@ public interface UsersRepository extends JpaRepository<OurUsers,Integer> {
 
 	@Query("SELECT DISTINCT u.uniqueCode FROM OurUsers u WHERE u.uniqueCode IS NOT NULL AND u.uniqueCode <> 'Admin'")
 	List<String> findDistinctProcesses();
-
+	
+	@Query("SELECT u.processCode FROM OurUsers u WHERE u.process = :process")
+	String findProcessCodeByProcess(@Param("process") String process);
 }
