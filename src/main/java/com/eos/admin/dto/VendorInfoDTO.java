@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 
 import java.util.List;
 
+import com.eos.admin.enums.VendorDetailsVerification;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +28,8 @@ public class VendorInfoDTO {
     private String serviceType;
     private String serviceTypeOther;
     private boolean declaration;
-
+    private String verificationRemark;
+    private VendorDetailsVerification vendorDetailsVerification;
     private List<DirectorDTO> directors;
     private BankDetailsDTO bankDetails;
 }

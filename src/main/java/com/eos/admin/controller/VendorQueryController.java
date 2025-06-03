@@ -1,5 +1,7 @@
 package com.eos.admin.controller;
 
+import java.util.List;
+import java.util.Map;
 import com.eos.admin.dto.VendorQueryDTO;
 import com.eos.admin.repository.VendorRepository;
 import com.eos.admin.service.QueryService;
@@ -7,17 +9,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.eos.admin.dto.VendorQueryDTO;
+import com.eos.admin.dto.VendorQueryInformationDTO;
+import com.eos.admin.entity.VendorQuery;
+import com.eos.admin.enums.VendorStatusType;
+import com.eos.admin.service.QueryService;
+
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/candi")
 @CrossOrigin("*")
+@Slf4j
 public class VendorQueryController {
 
-    // Create a logger instance
-    private static final Logger logger = LoggerFactory.getLogger(VendorQueryController.class);
 
     @Autowired
     private QueryService queryService;
@@ -29,17 +44,17 @@ public class VendorQueryController {
     public ResponseEntity<String> raiseQuery(@RequestBody VendorQueryDTO queryDTO) {
         try {
             // Log the received queryDTO
-            logger.info("Received a new query to raise: {}", queryDTO);
+            log.info("Received a new query to raise: {}", queryDTO);
 
             queryService.saveQuery(queryDTO);
 
             // Log the successful query raising
-            logger.info("Query raised successfully for vendor: {}", queryDTO.getVendorEmail());
+            log.info("Query raised successfully for vendor: {}", queryDTO.getVendorEmail());
 
             return ResponseEntity.ok("Query raised successfully!");
         } catch (Exception e) {
             // Log the exception when the query cannot be raised
-            logger.error("Failed to raise query: {}", e.getMessage(), e);
+            log.error("Failed to raise query: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body("Failed to raise query: " + e.getMessage());
         }
     }
@@ -49,24 +64,63 @@ public class VendorQueryController {
         try {
 
             // Log the request for queries by vendor email
-            logger.info("Fetching queries for vendor email: {}", vendorEmail);
+            log.info("Fetching queries for vendor email: {}", vendorEmail);
 
             List<VendorQueryDTO> queries = queryService.getQueriesByVendorEmail(vendorEmail);
 
             if (queries.isEmpty()) {
                 // Log if no queries are found
-                logger.warn("No queries found for vendor email: {}", vendorEmail);
+                log.warn("No queries found for vendor email: {}", vendorEmail);
                 return ResponseEntity.noContent().build();
             }
 
             // Log the number of queries found
-            logger.info("Found {} queries for vendor email: {}", queries.size(), vendorEmail);
+            log.info("Found {} queries for vendor email: {}", queries.size(), vendorEmail);
 
             return ResponseEntity.ok(queries);
         } catch (Exception e) {
             // Log the exception if there's an error fetching the queries
-            logger.error("Error fetching queries for vendor email {}: {}", vendorEmail, e.getMessage(), e);
+            log.error("Error fetching queries for vendor email {}: {}", vendorEmail, e.getMessage(), e);
             return ResponseEntity.status(500).body(null);
         }
     }
+    
+    @GetMapping("/getAllQueryForAdmin")
+    public ResponseEntity<List<VendorQueryInformationDTO>> getAllVendorQueries() {
+        log.info("Received request to get all vendor queries");
+
+        try {
+            List<VendorQueryInformationDTO> queries = queryService.getAllVendorQueries();
+            log.info("Returning {} vendor queries", queries.size());
+            return ResponseEntity.ok(queries);
+        } catch (Exception e) {
+            log.error("Failed to retrieve vendor queries", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateVendorQueryStatus(
+            @PathVariable Long id,
+            @RequestBody VendorQueryDTO vendorQueryDTO ) {
+        log.info("Received request to update status for VendorQuery id {}: {}", id, vendorQueryDTO);
+
+       
+        try {
+        	VendorStatusType newStatus = vendorQueryDTO.getVendorQueryStatus();
+            String remark =  vendorQueryDTO.getRemark();
+        
+            VendorQuery updated = queryService.updateStatus(id, newStatus,remark);
+            log.info("Status updated successfully for VendorQuery id {}", id);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid status value received: {}", vendorQueryDTO.getVendorQueryStatus());
+            return ResponseEntity.badRequest().body("Invalid status value");
+        }
+    }
+  
+    @GetMapping("/vendor-status")
+    public VendorStatusType[] getAllStatuses() {
+        return VendorStatusType.values();
+    }
+
 }

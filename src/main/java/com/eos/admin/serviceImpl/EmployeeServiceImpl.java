@@ -83,8 +83,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			StatusHistoryService statusHistoryService, StatusHistoryRepository statusHistoryRepository,
 			NotificationServiceImple notificationServiceImple, ModelMapper modelMapper,
 			EmployeeStatusDetailsRepository employeeStatusDetailsRepository,
-			InterviewProcessRepository interviewProcessRepository,
-			LanguagesServiceImpl languagesServiceImpl,
+			InterviewProcessRepository interviewProcessRepository, LanguagesServiceImpl languagesServiceImpl,
 			LanguagesRepository languagesRepository) {
 		super();
 		this.employeeRepository = employeeRepository;
@@ -96,12 +95,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 		this.employeeStatusDetailsRepository = employeeStatusDetailsRepository;
 		this.interviewProcessRepository = interviewProcessRepository;
 		this.languagesServiceImpl = languagesServiceImpl;
-		this.languagesRepository= languagesRepository;
+		this.languagesRepository = languagesRepository;
 	}
 
 	@Override
 	@Transactional
-	public EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> file, String path) throws IOException {
+	public EmployeeDto createEmployee(EmployeeDto employeeDto, List<MultipartFile> file, String path)
+			throws IOException {
 		// Check for duplicate email
 		if (checkDuplicateEmail(employeeDto.getEmail())) {
 			log.info("Starting employee creation process for: {}", employeeDto.getFullName());
@@ -128,15 +128,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 		Employee employeeEntity = modelMapper.map(employeeDto, Employee.class);
 
 		// **Crucial Step: Set the employee in each Language object**
-	    if (employeeEntity.getLanguage() != null) {
-	        for (Language language : employeeEntity.getLanguage()) {
-	            language.setEmployee(employeeEntity);
-	        }
-	    }
-	    
+		if (employeeEntity.getLanguage() != null) {
+			for (Language language : employeeEntity.getLanguage()) {
+				language.setEmployee(employeeEntity);
+			}
+		}
+
 		Employee savedEmployeeEntity = employeeRepository.save(employeeEntity);
 		log.info("Employee entity saved with ID: {}", savedEmployeeEntity.getId());
-		
+
 		// Create initial status and update status
 		statusHistoryService.createInitialStatus(savedEmployeeEntity);
 //		updateEmployeeStatus(savedEmployeeEntity);
@@ -162,7 +162,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 		log.info("Entering getListOfEmployeesOnProfileScreaning method.");
 		List<ProfileScreaningResponseDto> employees = new ArrayList<>();
 		try {
- 			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim());
+			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim());
 			if (response == null || response.isEmpty()) {
 				log.warn("No employee data found for profile screening.");
 				return employees;
@@ -184,13 +184,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 					employee.setPermanentAddress((String) result[5]);
 					employee.setGender((String) result[6]);
 					employee.setCreationDate((Date) result[7]);
-					 String languagesString = (String) result[8];
-		                if (languagesString != null && !languagesString.isEmpty()) {
-		                    List<String> languages = Arrays.asList(languagesString.split(", "));
-		                    employee.setLanguages(languages); // Set the languages to the employee DTO
-		                } else {
-		                    employee.setLanguages(new ArrayList<>()); // No languages available
-		                }
+					String languagesString = (String) result[8];
+					if (languagesString != null && !languagesString.isEmpty()) {
+						List<String> languages = Arrays.asList(languagesString.split(", "));
+						employee.setLanguages(languages); // Set the languages to the employee DTO
+					} else {
+						employee.setLanguages(new ArrayList<>()); // No languages available
+					}
 //					employee.setReadLanguages((List<String>) result[8]);
 //					employee.setWriteLanguages((List<String>) result[9]);
 					employees.add(employee);
@@ -453,27 +453,26 @@ public class EmployeeServiceImpl implements EmployeeService {
 	@Override
 	public void assignInterviewProcessFromRejectPage(Long employeeId, StatusRequestDTO statusRequestDTO) {
 
-	    EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository
-	        .findByEmployeeId(employeeId)
-	        .orElseThrow(() -> new RuntimeException("EmployeeStatusDetails not found"));
+		EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository.findByEmployeeId(employeeId)
+				.orElseThrow(() -> new RuntimeException("EmployeeStatusDetails not found"));
 
-	    // Get the associated employee
-	    Employee employee = employeeStatusDetails.getEmployee();
+		// Get the associated employee
+		Employee employee = employeeStatusDetails.getEmployee();
 
-	    // Create and associate InterviewProcesses
-	    InterviewProcesses interviewProcesses = new InterviewProcesses();
-	    interviewProcesses.setEmployee(employee);
+		// Create and associate InterviewProcesses
+		InterviewProcesses interviewProcesses = new InterviewProcesses();
+		interviewProcesses.setEmployee(employee);
 
-	    // Update and save the employee status
-	    employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
-	    employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
-	    employeeStatusDetailsRepository.save(employeeStatusDetails);
+		// Update and save the employee status
+		employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
+		employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
+		employeeStatusDetailsRepository.save(employeeStatusDetails);
 
-	    // Save interview process
-	    InterviewProcesses savedInterviewProcess = interviewProcessRepository.save(interviewProcesses);
+		// Save interview process
+		InterviewProcesses savedInterviewProcess = interviewProcessRepository.save(interviewProcesses);
 
-	    // Set status history
-	    setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, savedInterviewProcess);
+		// Set status history
+		setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, savedInterviewProcess);
 	}
 
 	@Override
@@ -765,20 +764,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 			List<EmployeeDetailsOnManagerPageDTO> dtoList = new ArrayList<>();
 
 			for (Object[] obj : employeeObjects) {
-				EmployeeDetailsOnManagerPageDTO dto = new EmployeeDetailsOnManagerPageDTO(
-						(Long) obj[0],
-						(String) obj[1], 
-						(String) obj[2], 
-						(String) obj[3],
-						(Long)obj[4],
-						(String) obj[5],
-						(String)obj[6],
-						(Date) obj[7]
-						
-						
-						
-								
-						
+				EmployeeDetailsOnManagerPageDTO dto = new EmployeeDetailsOnManagerPageDTO((Long) obj[0],
+						(String) obj[1], (String) obj[2], (String) obj[3], (Long) obj[4], (String) obj[5],
+						(String) obj[6], (Date) obj[7]
+
 				);
 				dtoList.add(dto);
 			}
@@ -801,6 +790,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 		populateRowsWithEmployeeData(sheet, data);
 		writeToResponse(workbook, response);
 	}
+
 	private void createSeqReportExcelHeader(Sheet sheet) {
 		Row headerRow = sheet.createRow(0);
 		String[] headers = { "Employee ID", "Full Name", "Qualification", "Aadhaar Number", "Creation Date",
@@ -814,7 +804,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 			headerRow.createCell(i).setCellValue(headers[i]);
 		}
 	}
-
 
 	private void addStatusHistoryHeaders(Row headerRow, int columnOffSet, String... headers) {
 		for (int i = 0; i < headers.length; i++) {
@@ -1025,7 +1014,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 				.findTopByEmployeeOrderByChangesDateTimeDesc(savedEmployeeEntity);
 		if (latestStatus != null) {
 
-
 			EmployeeStatusDetails statusDetails = employeeStatusDetailsRepository.findByEmployee(savedEmployeeEntity);
 
 			if (statusDetails != null) {
@@ -1079,42 +1067,40 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public EmployeeDto submitResponseForReScreeningProfile(Long employeeId, StatusRequestDTO statusRequestDTO) {
-	    try {
-	        log.info("Submitting response for re-screening for employeeId: {}", employeeId);
+		try {
+			log.info("Submitting response for re-screening for employeeId: {}", employeeId);
 
-	        // Fetch employee status details
-	        EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository
-	            .findByEmployeeId(employeeId)
-	            .orElseThrow(() -> {
-	                log.error("EmployeeStatusDetails not found for employeeId: {}", employeeId);
-	                return new RuntimeException("EmployeeStatusDetails not found");
-	            });
+			// Fetch employee status details
+			EmployeeStatusDetails employeeStatusDetails = employeeStatusDetailsRepository.findByEmployeeId(employeeId)
+					.orElseThrow(() -> {
+						log.error("EmployeeStatusDetails not found for employeeId: {}", employeeId);
+						return new RuntimeException("EmployeeStatusDetails not found");
+					});
 
-	        // Clear HR status
-	        employeeStatusDetails.setHrStatus(null);
-	        employeeStatusDetailsRepository.save(employeeStatusDetails);
-	        log.info("Cleared HR status for employeeId: {}", employeeId);
+			// Clear HR status
+			employeeStatusDetails.setHrStatus(null);
+			employeeStatusDetailsRepository.save(employeeStatusDetails);
+			log.info("Cleared HR status for employeeId: {}", employeeId);
 
-	        // Update status history and remarks
-	        setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, null);
-	        log.info("Status history recorded for employeeId: {}", employeeId);
+			// Update status history and remarks
+			setStatusHistoryRecoredRemarksChecks(employeeId, statusRequestDTO, null);
+			log.info("Status history recorded for employeeId: {}", employeeId);
 
-	        // Fetch and return updated EmployeeDto
-	        Employee updatedEmployee = employeeRepository.findById(employeeId)
-	            .orElseThrow(() -> {
-	                log.error("Employee not found with ID: {}", employeeId);
-	                return new RuntimeException("Employee not found");
-	            });
+			// Fetch and return updated EmployeeDto
+			Employee updatedEmployee = employeeRepository.findById(employeeId).orElseThrow(() -> {
+				log.error("Employee not found with ID: {}", employeeId);
+				return new RuntimeException("Employee not found");
+			});
 
-	        EmployeeDto employeeDto = modelMapper.map(updatedEmployee, EmployeeDto.class);
-	        log.info("Returning updated EmployeeDto for employeeId: {}", employeeId);
+			EmployeeDto employeeDto = modelMapper.map(updatedEmployee, EmployeeDto.class);
+			log.info("Returning updated EmployeeDto for employeeId: {}", employeeId);
 
-	        return employeeDto;
+			return employeeDto;
 
-	    } catch (Exception e) {
-	        log.error("Error occurred while submitting response for re-screening for employeeId: {}", employeeId, e);
-	        throw new RuntimeException("Failed to submit response for re-screening", e);
-	    }
+		} catch (Exception e) {
+			log.error("Error occurred while submitting response for re-screening for employeeId: {}", employeeId, e);
+			throw new RuntimeException("Failed to submit response for re-screening", e);
+		}
 	}
 
 	@Override
@@ -1122,9 +1108,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 		log.info("Fetching vendor name for employee email: {}", empEmail);
 		String vendorName = employeeRepository.getVendorNameByEmployeeEmail(empEmail);
 		if (vendorName == null || vendorName.isEmpty()) {
-            log.warn("No vendor found for employee email: {}", empEmail);
-            throw new EntityNotFoundException("Vendor not found for employee email: " + empEmail);
-        }
+			log.warn("No vendor found for employee email: {}", empEmail);
+			throw new EntityNotFoundException("Vendor not found for employee email: " + empEmail);
+		}
 		log.info("Vendor name found: {} for employee email: {}", vendorName, empEmail);
 		return vendorName;
 	}

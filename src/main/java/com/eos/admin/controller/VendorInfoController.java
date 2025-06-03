@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.eos.admin.dto.DetailedFormDTO;
 import com.eos.admin.dto.VendorInfoDTO;
+import com.eos.admin.dto.VendorVerificationDTO;
+import com.eos.admin.enums.VendorDetailsVerification;
+import com.eos.admin.enums.VendorStatusType;
+import com.eos.admin.exception.EntityNotFoundException;
 import com.eos.admin.service.VendorInfoService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -93,4 +99,24 @@ public class VendorInfoController {
 	}
 
 	// Helper to save file on local disk
+
+	@GetMapping("/vendor-detalils-status")
+	public VendorDetailsVerification[] getAllStatuses() {
+		return VendorDetailsVerification.values();
+	}
+
+	@PutMapping("/{id}/verification-vendor-details")
+	public ResponseEntity<?> vendorDetailsVerification(@PathVariable Long id,
+			@RequestBody VendorVerificationDTO vendorVerificationDTO) {
+		try {
+			String result = vendorInfoService.verifyVendorDetails(id, vendorVerificationDTO);
+			return ResponseEntity.ok(result);
+		} catch (EntityNotFoundException ex) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+		} catch (Exception ex) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("An error occurred while verifying vendor: " + ex.getMessage());
+		}
+	}
+
 }

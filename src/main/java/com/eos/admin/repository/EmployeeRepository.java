@@ -114,9 +114,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		)
 		List<Object[]> findEmployeesByRoleAndLocation(@Param("role") String role, @Param("location") String location);
 		@Query(
-			    value = "SELECT vi.company_name " +
+			    value = "SELECT vi.name " +
 			            "FROM candidates_entity ce " +
-			            "JOIN vendor_info vi ON ce.vendor_email = vi.email " +
+			            "JOIN vendors vi ON ce.vendor_email = vi.email " +
 			            "WHERE ce.candi_email = :candiEmail",
 			    nativeQuery = true
 			)
