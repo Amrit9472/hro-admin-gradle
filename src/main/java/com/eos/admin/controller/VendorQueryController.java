@@ -2,7 +2,11 @@ package com.eos.admin.controller;
 
 import java.util.List;
 import java.util.Map;
-
+import com.eos.admin.dto.VendorQueryDTO;
+import com.eos.admin.repository.VendorRepository;
+import com.eos.admin.service.QueryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -32,6 +36,9 @@ public class VendorQueryController {
 
     @Autowired
     private QueryService queryService;
+    
+    @Autowired
+    private VendorRepository vendorRepository;
 
     @PostMapping("/raisequery")
     public ResponseEntity<String> raiseQuery(@RequestBody VendorQueryDTO queryDTO) {

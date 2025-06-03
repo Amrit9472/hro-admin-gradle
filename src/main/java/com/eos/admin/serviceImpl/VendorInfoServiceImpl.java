@@ -162,8 +162,14 @@ public class VendorInfoServiceImpl implements VendorInfoService {
 
 		log.info("Vendor ID {} verification updated. Approved: {}", id, isApproved);
 
+
 		return "Vendor verification updated successfully.";
 	}
+
+	private String saveChequeImageAndSetPath(DetailedFormDTO detailedFormDTO, MultipartFile chequeImage) throws IOException {
+	    if (chequeImage != null && !chequeImage.isEmpty()) {
+	        String uploadDir = "C:\\Users\\Athang_y\\Desktop\\uploads";
+	        Files.createDirectories(Paths.get(uploadDir));
 
 	private String saveChequeImageAndSetPath(DetailedFormDTO detailedFormDTO, MultipartFile chequeImage)
 			throws IOException {

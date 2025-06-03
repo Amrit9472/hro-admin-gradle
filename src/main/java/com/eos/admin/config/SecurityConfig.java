@@ -45,6 +45,9 @@ public class SecurityConfig {
 	private static final String ROLE_USER = "USER";
 	private static final String ROLE_MANAGER = "MANAGER";
 	private static final String ROLE_VENDOR = "VENDOR";
+	private static final String ROLE_ER= "ER";
+	private static final String ROLE_TRAINER = "TRAINER";
+	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 		httpSecurity.csrf(AbstractHttpConfigurer::disable)
@@ -59,6 +62,8 @@ public class SecurityConfig {
 				.requestMatchers("/adminuser/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)
 				.requestMatchers("/api/candi/**").hasAnyAuthority(ROLE_VENDOR,ROLE_ADMIN)
 				.requestMatchers("/api/vendorInfo/**").hasAnyAuthority(ROLE_VENDOR,ROLE_ADMIN)
+				.requestMatchers("/api/attendance/**").hasAnyAuthority(ROLE_ER)
+				.requestMatchers("/api/training-attendance/**").hasAnyAuthority(ROLE_TRAINER)
 				.anyRequest().authenticated())
 		.sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.authenticationProvider(authenticationProvider())
