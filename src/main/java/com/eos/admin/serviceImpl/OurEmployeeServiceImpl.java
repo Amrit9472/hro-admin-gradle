@@ -29,6 +29,7 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Text;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 
 
@@ -127,12 +128,15 @@ public class OurEmployeeServiceImpl implements OurEmployeeService {
             String logoPath = "src/main/resources/logo.png"; // or use ClassLoader if needed
             ImageData imageData = ImageDataFactory.create(logoPath);
             Image logo = new Image(imageData);
+            logo.scaleToFit(100, 50); // Resize the image
+            logo.setHorizontalAlignment(HorizontalAlignment.CENTER); // Optional alignment
+            document.add(logo);
             
             // Reference and Date
 			document.add(new Paragraph("Date: " + LocalDate.now()).setFont(helvetica));
 	        document.add(new Paragraph("Reference No: " + referenceId));
 	    
-	        document.add(logo);
+//	        document.add(logo);
 	        
 	     	document.add(new Paragraph("Letter of Intent").setTextAlignment(TextAlignment.CENTER)
 	     					.setFontSize(14).setMarginBottom(20).setFont(timesNewRomanFont));
