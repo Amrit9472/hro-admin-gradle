@@ -106,7 +106,7 @@ public class VendorInfoController {
 	}
 
 	@PutMapping("/{id}/verification-vendor-details")
-	public ResponseEntity<?> vendorDetailsVerification(@PathVariable Long id,
+	public ResponseEntity<?> vendorDetailsVerification(@PathVariable("id") Long id,
 			@RequestBody VendorVerificationDTO vendorVerificationDTO) {
 		try {
 			String result = vendorInfoService.verifyVendorDetails(id, vendorVerificationDTO);
