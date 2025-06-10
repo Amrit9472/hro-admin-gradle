@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.eos.admin.enums.AttendanceType;
 
 @Entity
-@Table(name = "InductionAttendance")
+@Table(name = "induction_attendance")
 @Data
 public class InductionAttendance {
     @Id
@@ -23,8 +26,9 @@ public class InductionAttendance {
 
     private String marker; // who marked
 
-    private String type; // training / induction
+    @Enumerated(EnumType.STRING)
+    private AttendanceType type;  // training / induction
 
     @Column(name = "submission_date")
-    private LocalDate submissionDate;
+    private LocalDateTime submissionDate;
 }

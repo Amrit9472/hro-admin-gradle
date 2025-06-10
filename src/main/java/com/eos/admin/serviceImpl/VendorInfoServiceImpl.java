@@ -205,7 +205,6 @@ public class VendorInfoServiceImpl implements VendorInfoService {
 		return "Vendor verification updated successfully.";
 	}
 
-
 	private String saveChequeImageAndSetPath(DetailedFormDTO detailedFormDTO, MultipartFile chequeImage)
 			throws IOException {
 		if (chequeImage != null && !chequeImage.isEmpty()) {

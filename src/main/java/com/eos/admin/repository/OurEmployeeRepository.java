@@ -19,12 +19,12 @@ public interface OurEmployeeRepository extends JpaRepository<OurEmployees, Long>
 
 	List<OurEmployees> findByProcess(String process);
 	
-	@Query(value = "SELECT oe.process, e.full_name as fullName, ia.submission_date as submissionDate " +
-            "FROM our_employee oe " +
-            "JOIN employees e ON oe.employee_id = e.id " +
-            "LEFT JOIN induction_attendance ia ON e.id = ia.employee_id " +
-            "WHERE oe.process = :process",
-    nativeQuery = true)
+	@Query(value = "SELECT e.id AS employeeId, oe.process, e.full_name AS fullName, ia.submission_date AS inductionCompleteDate, ia.type " +
+	        "FROM our_employee oe " +
+	        "JOIN employees e ON oe.employee_id = e.id " +
+	        "LEFT JOIN induction_attendance ia ON e.id = ia.employee_id " +
+	        "WHERE oe.process = :process AND ia.type = 'TRAINING'", 
+	        nativeQuery = true)
 	List<Object[]> findEmployeeDetailsByProcess(@Param("process") String process);
 
 }

@@ -4,15 +4,19 @@ import com.eos.admin.dto.InductionAttendanceDTO;
 import com.eos.admin.entity.InductionAttendance;
 import com.eos.admin.entity.Employee;
 import com.eos.admin.entity.OurEmployees;
+import com.eos.admin.entity.TrainingBatch;
+import com.eos.admin.enums.AttendanceType;
 import com.eos.admin.repository.InductionAttendanceRepository;
 import com.eos.admin.repository.EmployeeRepository;
 import com.eos.admin.repository.OurEmployeeRepository;
+import com.eos.admin.repository.TrainingBatchRepository;
 import com.eos.admin.service.InductionAttendanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,6 +29,9 @@ public class InductionAttendanceServiceImpl implements InductionAttendanceServic
 
     @Autowired
     private EmployeeRepository employeeRepository;
+    
+    @Autowired
+    private TrainingBatchRepository trainingBatchRepository;
 
     @Autowired
     private InductionAttendanceRepository attendanceRepository;
@@ -73,6 +80,50 @@ public class InductionAttendanceServiceImpl implements InductionAttendanceServic
             return Collections.emptyList();
         }
     }
+    
+    @Override
+    public List<InductionAttendanceDTO> getEmployeesByBatch(Long batchId) {
+        List<InductionAttendanceDTO> response = new ArrayList<>();
+
+        try {
+            Optional<TrainingBatch> optionalBatch = trainingBatchRepository.findById(batchId);
+            if (optionalBatch.isPresent()) {
+                TrainingBatch batch = optionalBatch.get();
+                List<Long> candidateIds = batch.getCandidateIds();
+
+                for (Long empId : candidateIds) {
+                    Employee emp = employeeRepository.findById(empId).orElse(null);
+                    if (emp != null) {
+                        InductionAttendanceDTO dto = new InductionAttendanceDTO();
+                        dto.setEmployeeId(emp.getId());
+                        dto.setName(emp.getFullName());
+                        dto.setDate(batch.getTrainingStartDate());
+                        dto.setProcess(batch.getProcess());
+                        dto.setType(AttendanceType.TRAINING);
+                        response.add(dto);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch training batch employees for batchId={}", batchId, e);
+        }
+
+        return response;
+    }
+    @Override
+    public List<Map<String, Object>> getAllTrainingBatches() {
+        List<Map<String, Object>> batches = new ArrayList<>();
+
+        trainingBatchRepository.findAll().forEach(batch -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", batch.getId());
+            map.put("batchCode", batch.getBatchCode());
+            map.put("trainingStartDate", batch.getTrainingStartDate());
+            batches.add(map);
+        });
+
+        return batches;
+    }
 
 
     @Override
@@ -86,7 +137,7 @@ public class InductionAttendanceServiceImpl implements InductionAttendanceServic
                 a.setStatus(dto.getStatus());
                 a.setMarker(dto.getMarker());
                 a.setType(dto.getType());
-                a.setSubmissionDate(LocalDate.now());
+                a.setSubmissionDate(LocalDateTime.now());
                 return a;
             }).collect(Collectors.toList());
 

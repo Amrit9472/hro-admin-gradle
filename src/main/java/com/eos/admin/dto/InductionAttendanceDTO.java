@@ -4,6 +4,8 @@ import lombok.Data;
 
 import java.time.LocalDate;
 
+import com.eos.admin.enums.AttendanceType;
+
 @Data
 public class InductionAttendanceDTO {
     private Long employeeId;
@@ -12,5 +14,5 @@ public class InductionAttendanceDTO {
     private String process;
     private String status; // "Present" or "Absent"
     private String marker; // who marked it
-    private String type;   // "training" or "induction"
+    private AttendanceType type;   // "training" or "induction"
 }
