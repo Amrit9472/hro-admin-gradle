@@ -1,6 +1,8 @@
 package com.eos.admin.serviceImpl;
 
+import com.eos.admin.dto.BankDetailsDTO;
 import com.eos.admin.dto.DetailedFormDTO;
+import com.eos.admin.dto.DirectorDTO;
 import com.eos.admin.dto.VendorInfoDTO;
 import com.eos.admin.dto.VendorVerificationDTO;
 import com.eos.admin.entity.VendorInfo;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +29,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class VendorInfoServiceImpl implements VendorInfoService {
-
+	
+	
+	@Value("${project.image.check-image}")
+	private String checkImagePath;
+	
 	private final VendorInfoRepository vendorInfoRepository;
 	private final ModelMapper modelMapper;
 //    private final VendorInfoService vendorInfoService;
@@ -80,18 +87,50 @@ public class VendorInfoServiceImpl implements VendorInfoService {
 
 	@Override
 	public List<VendorInfoDTO> getAllVendorInfos() {
-		try {
-			// Fetching all VendorInfo records from the repository
-			List<VendorInfo> vendorInfos = vendorInfoRepository.findAll();
+	    List<VendorInfo> vendorInfos = vendorInfoRepository.findAll();
 
-			// Mapping each entity to DTO
-			return vendorInfos.stream().map(vendorInfo -> modelMapper.map(vendorInfo, VendorInfoDTO.class))
-					.collect(Collectors.toList());
-		} catch (Exception e) {
-			// Handle exceptions and log appropriately
-			throw new RuntimeException("Error occurred while fetching all VendorInfos: " + e.getMessage(), e);
-		}
+	    return vendorInfos.stream().map(vendorInfo -> {
+	        VendorInfoDTO dto = modelMapper.map(vendorInfo, VendorInfoDTO.class);
+	        BankDetailsDTO bankDetails = dto.getBankDetails();
+
+	        if (bankDetails != null && bankDetails.getAccountNumber() != null) {
+	            String imageUrl = "/images/" + bankDetails.getAccountNumber() + "_img.jpg";
+	            bankDetails.setChequeImagePath(imageUrl);
+	        }
+
+	        return dto;
+	    }).collect(Collectors.toList());
 	}
+//	public List<VendorInfoDTO> getAllVendorInfos() {
+//		try {
+//			// Fetching all VendorInfo records from the repository
+//			List<VendorInfo> vendorInfos = vendorInfoRepository.findAll();
+//
+//			// Mapping each entity to DTO
+//			 List<VendorInfoDTO> vendorInfoDTOList = vendorInfos.stream().map(vendorInfo -> {
+//		            VendorInfoDTO dto = modelMapper.map(vendorInfo, VendorInfoDTO.class);
+//		        
+//		            BankDetailsDTO bankDetails = dto.getBankDetails();  
+//		            
+//		            if (bankDetails != null && bankDetails.getAccountNumber() != null) {
+//		                // Construct the image URL using the account number from BankDetailsDTO
+//		                String imageUrl = checkImagePath +"/"+ bankDetails.getAccountNumber() + "_img.jpg";
+//		                
+//		                // Set the cheque image path in the BankDetailsDTO
+//		                bankDetails.setChequeImagePath(imageUrl);
+//		            }
+//
+//		            return dto;
+//		        }).collect(Collectors.toList());
+//			 return vendorInfoDTOList;
+//			 
+////			return vendorInfos.stream().map(vendorInfo -> modelMapper.map(vendorInfo, VendorInfoDTO.class))
+////					.collect(Collectors.toList( 	));
+//		} catch (Exception e) {
+//			// Handle exceptions and log appropriately
+//			throw new RuntimeException("Error occurred while fetching all VendorInfos: " + e.getMessage(), e);
+//		}
+//	}
 
 	@Override
 	public void deleteVendorInfo(Long id) {
@@ -166,30 +205,37 @@ public class VendorInfoServiceImpl implements VendorInfoService {
 		return "Vendor verification updated successfully.";
 	}
 
-	private String saveChequeImageAndSetPath(DetailedFormDTO detailedFormDTO, MultipartFile chequeImage) throws IOException {
-	    if (chequeImage != null && !chequeImage.isEmpty()) {
-	        String uploadDir = "C:\\Users\\Athang_y\\Desktop\\uploads";
-	        Files.createDirectories(Paths.get(uploadDir));
 
 	private String saveChequeImageAndSetPath(DetailedFormDTO detailedFormDTO, MultipartFile chequeImage)
 			throws IOException {
 		if (chequeImage != null && !chequeImage.isEmpty()) {
-			String uploadDir = "uploads/cheque_images/";
+			String uploadDir = checkImagePath;
 			Files.createDirectories(Paths.get(uploadDir));
 
-			String filename = detailedFormDTO.getBankDetails().getAccountNumber() + "_"
-					+ chequeImage.getOriginalFilename();
+//			String filename = detailedFormDTO.getBankDetails().getAccountNumber() + "_"
+//					+ chequeImage.getOriginalFilename();
+//			Path filepath = Paths.get(uploadDir, filename);
+//			Files.write(filepath, chequeImage.getBytes());
+//
+//			String savedPath = filepath.toString();
+//			log.info("Saved cheque image to {}", savedPath);
+//
+//			String relativePath = "/images/" + filename; // URL path
+//		    log.info("Saved cheque image accessible at {}", relativePath);
+			String accountNumber = detailedFormDTO.getBankDetails().getAccountNumber();
+			String filename = accountNumber + "_img.jpg";  // fixed clean format
 			Path filepath = Paths.get(uploadDir, filename);
 			Files.write(filepath, chequeImage.getBytes());
 
-			String savedPath = filepath.toString();
-			log.info("Saved cheque image to {}", savedPath);
+			String relativePath = "/images/" + filename;
+			detailedFormDTO.getBankDetails().setChequeImagePath(relativePath);
 
+		    
 			if (detailedFormDTO.getBankDetails() != null) {
-				detailedFormDTO.getBankDetails().setChequeImagePath(savedPath);
+				detailedFormDTO.getBankDetails().setChequeImagePath(relativePath);
 			}
 
-			return savedPath;
+			return relativePath;
 		}
 
 		log.warn("Cheque image is null or empty, skipping file save.");

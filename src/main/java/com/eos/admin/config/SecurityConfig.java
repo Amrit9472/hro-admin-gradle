@@ -12,6 +12,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -52,15 +53,16 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 		httpSecurity.csrf(AbstractHttpConfigurer::disable)
 		.cors(Customizer.withDefaults())
-		.authorizeHttpRequests(Request -> Request.requestMatchers("/auth/**", "/public/**", "/auth/vendor/**").permitAll().
+		.authorizeHttpRequests(Request -> Request.requestMatchers("/auth/**", "/public/**", "/auth/vendor/**", "/images/**").permitAll().
 				requestMatchers("/api/employees/createEmployee").permitAll()
 				.requestMatchers("/api/employees/vendor").permitAll()
+				.requestMatchers("/api/email/send-interview-email").permitAll()
 				.requestMatchers("/admin/**").hasAnyAuthority(ROLE_ADMIN)
 				.requestMatchers("/user/**").hasAnyAuthority(ROLE_USER,ROLE_MANAGER)
 				.requestMatchers("/api/employees/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)
 				.requestMatchers("/api/loi/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)
 				.requestMatchers("/adminuser/**").hasAnyAuthority(ROLE_USER,ROLE_ADMIN,ROLE_MANAGER)
-				.requestMatchers("/api/candi/**").hasAnyAuthority(ROLE_VENDOR,ROLE_ADMIN)
+				.requestMatchers("/api/candi/**").hasAnyAuthority(ROLE_VENDOR,ROLE_ADMIN)			
 				.requestMatchers("/api/vendorInfo/**").hasAnyAuthority(ROLE_VENDOR,ROLE_ADMIN)
 				.requestMatchers("/api/attendance/**").hasAnyAuthority(ROLE_ER)
 				.requestMatchers("/api/training-attendance/**").hasAnyAuthority(ROLE_TRAINER)
@@ -113,4 +115,9 @@ public class SecurityConfig {
 	    public AuthenticationManager vendorAuthenticationManager() {
 	        return new ProviderManager(vendorAuthenticationProvider());
 	    }
+	 @Bean
+	 public WebSecurityCustomizer webSecurityCustomizer() {
+	     return (web) -> web.ignoring().requestMatchers("/images/**");
+	 }
+
 }

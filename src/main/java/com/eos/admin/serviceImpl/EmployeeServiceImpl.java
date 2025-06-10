@@ -54,6 +54,7 @@ import com.eos.admin.repository.EmployeeStatusDetailsRepository;
 import com.eos.admin.repository.InterviewProcessRepository;
 import com.eos.admin.repository.LanguagesRepository;
 import com.eos.admin.repository.StatusHistoryRepository;
+import com.eos.admin.service.EmailService;
 import com.eos.admin.service.EmployeeService;
 import com.eos.admin.service.FileService;
 import com.eos.admin.service.StatusHistoryService;
@@ -77,6 +78,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 	private InterviewProcessRepository interviewProcessRepository;
 	private LanguagesServiceImpl languagesServiceImpl;
 	private LanguagesRepository languagesRepository;
+	private OurUserDetailsServiceImpl ourUserDetailsServiceImpl;
+	private EmailService emailService;
 
 	@Autowired
 	public EmployeeServiceImpl(EmployeeRepository employeeRepository, FileService fileSercice,
@@ -84,7 +87,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			NotificationServiceImple notificationServiceImple, ModelMapper modelMapper,
 			EmployeeStatusDetailsRepository employeeStatusDetailsRepository,
 			InterviewProcessRepository interviewProcessRepository, LanguagesServiceImpl languagesServiceImpl,
-			LanguagesRepository languagesRepository) {
+			LanguagesRepository languagesRepository,OurUserDetailsServiceImpl ourUserDetailsServiceImpl,EmailService emailService) {
 		super();
 		this.employeeRepository = employeeRepository;
 		this.fileSercice = fileSercice;
@@ -96,6 +99,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 		this.interviewProcessRepository = interviewProcessRepository;
 		this.languagesServiceImpl = languagesServiceImpl;
 		this.languagesRepository = languagesRepository;
+		this.ourUserDetailsServiceImpl = ourUserDetailsServiceImpl;
+		this.emailService = emailService;
 	}
 
 	@Override
@@ -268,6 +273,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 						statusRequestDTO.getRemarks(), statusRequestDTO.getNewStatus(), employeeId);
 				employeeStatusDetails.setRemarksByHr(statusRequestDTO.getRemarks());
 				employeeStatusDetails.setProcessesStatus(statusRequestDTO.getProcessName());
+				if(statusRequestDTO.getProcessName() != null && !statusRequestDTO.getProcessName().isEmpty()) {
+				 List<String> emailList = ourUserDetailsServiceImpl.findEmailByProceeName(statusRequestDTO.getProcessName());
+				 log.info("Email list to send interview schedule: {}", emailList);
+               
+				 emailService.sendScheduleInterviewEmailToManager(emailList , employeeStatusDetails, statusRequestDTO);
+				}
+				
 				employeeStatusDetails.setLastInterviewAssign(statusRequestDTO.getProcessName());
 				employeeStatusDetails.setGrade(statusRequestDTO.getGrade());
 				employeeStatusDetails.setCompanyType(statusRequestDTO.getCompanyType());

@@ -32,4 +32,5 @@ public class VendorInfoDTO {
     private VendorDetailsVerification vendorDetailsVerification;
     private List<DirectorDTO> directors;
     private BankDetailsDTO bankDetails;
+   
 }

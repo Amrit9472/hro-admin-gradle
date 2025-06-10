@@ -21,4 +21,8 @@ public interface UsersRepository extends JpaRepository<OurUsers,Integer> {
 	
 	@Query("SELECT u.processCode FROM OurUsers u WHERE u.process = :process")
 	String findProcessCodeByProcess(@Param("process") String process);
+
+	List<OurUsers> findByProcess(String processName);
+
+	List<OurUsers> findByUniqueCode(String processName);
 }

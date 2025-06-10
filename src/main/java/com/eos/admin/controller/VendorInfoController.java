@@ -88,7 +88,7 @@ public class VendorInfoController {
 
 	// Delete vendor by ID
 	@DeleteMapping("/delete/{id}")
-	public ResponseEntity<?> deleteVendor(@PathVariable Long id) {
+	public ResponseEntity<?> deleteVendor(@PathVariable("id") Long id) {
 		try {
 			vendorInfoService.deleteVendorInfo(id);
 			return ResponseEntity.noContent().build();

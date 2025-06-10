@@ -30,6 +30,7 @@ public class OurUsers implements UserDetails {
 	private String process;
 	private String processCode;
 	private String uniqueCode;
+	private String officeEmail;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

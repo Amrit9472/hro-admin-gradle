@@ -1,7 +1,9 @@
 package com.eos.admin.serviceImpl;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -56,14 +58,17 @@ public class UserManagementService {
 			ourUsers.setCity(registrationRequest.getCity());
 			ourUsers.setRole(registrationRequest.getRole());
 			ourUsers.setName(formattedString(registrationRequest.getName()));
+			ourUsers.setOfficeEmail(registrationRequest.getOfficeEmail());
 			String processName = registrationRequest.getProcess().trim().toUpperCase();
 			String processCode = registrationRequest.getProcessCode().trim();
 			ourUsers.setProcess(processName);
 			ourUsers.setProcessCode(processCode);
+			
 
+			if((processName != null && !processName.isEmpty()) && (processCode != null && !processCode.isEmpty())) {
 			String uniqueCode = processName + "-" + processCode;
 			ourUsers.setUniqueCode(uniqueCode);
-
+			}
 			ourUsers.setPassword(passwordEncode.encode(registrationRequest.getPassword()));
 
 			OurUsers ourUsersResult = usersRepository.save(ourUsers);
@@ -206,7 +211,9 @@ public class UserManagementService {
 
 	public List<String> getMyProcessName() {
 		List<String> processes = usersRepository.findDistinctProcesses();
-		return processes;
+		  return processes.stream()
+                  .filter(Objects::nonNull)
+                  .collect(Collectors.toList());
 	}
 
 }

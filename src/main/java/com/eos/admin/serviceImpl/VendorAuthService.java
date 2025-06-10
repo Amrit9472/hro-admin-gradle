@@ -15,6 +15,7 @@ import com.eos.admin.dto.ReqRes;
 import com.eos.admin.entity.Vendor;
 import com.eos.admin.jwt.JWTUtilsImpl;
 import com.eos.admin.repository.VendorRepository;
+import com.eos.admin.service.EmailService;
 
 @Service
 public class VendorAuthService {
@@ -29,8 +30,7 @@ public class VendorAuthService {
     private JWTUtilsImpl jwtUtils;
     
     @Autowired
-    private JavaMailSender javaMailSender;
-
+    private EmailService emailService;
     @Autowired
     @Qualifier("vendorAuthenticationManager")
     private AuthenticationManager vendorAuthenticationManager;
@@ -52,7 +52,7 @@ public class VendorAuthService {
         vendor.setRole("VENDOR");
 
         vendorRepository.save(vendor);
-        sendRegistrationEmail(vendor.getEmail(), request.getPassword());
+        emailService.sendRegistrationEmail(vendor.getEmail(), request.getPassword());
         resp.setStatusCode(200);
         resp.setMessage("Vendor registered.");
         return resp;
@@ -90,18 +90,4 @@ public class VendorAuthService {
         return resp;
     }
 
-    
-    private void sendRegistrationEmail(String toEmail, String rawPassword) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(toEmail);
-            message.setSubject("Vendor Registration - Confirmation");
-            message.setText("Hi,\n\nYou are successfully registered as a vendor.\n\nLogin Details:\nEmail: " + toEmail + "\nPassword: " + rawPassword + "\n\nRegards,\nVendor Team");
-            message.setFrom("bi@eosglobe.com"); // Or your domain email
-
-            javaMailSender.send(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

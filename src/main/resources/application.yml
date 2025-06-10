@@ -1,4 +1,7 @@
 spring:
+  web:
+    resources:
+      static-locations: file:///C:/Users/Bot_25/Desktop/Documents/CheckImages/
   application:
     name: ''
   datasource:
@@ -29,15 +32,19 @@ spring:
 
 logging:
   level:
-    org:
-      hibernate:
-        SQL: DEBUG
-        type: TRACE
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.resource: TRACE
+    org.springframework.mail: DEBUG
+    org.apache.commons.mail: DEBUG
+    javax.mail: DEBUG
 
 project:
-  image: images/
+  image:
+    check-image: C:/Users/Bot_25/Desktop/Documents/CheckImages
   file:
     upload-dir: C:/Users/Bot_25/Desktop/Documents/AadharFileUpload
+  pdf:
+    save-path: C:/Users/Bot_25/Desktop/Documents/LOIPdf
 
 cors:
   allowed:
