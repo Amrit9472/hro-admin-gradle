@@ -31,7 +31,7 @@ public class OurUsers implements UserDetails {
 	private String processCode;
 	private String uniqueCode;
 	private String officeEmail;
-
+    private String branch;
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority(role));

@@ -32,9 +32,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	        + "WHERE esd.initial_Status = 'Active' "
 	        + "AND esd.hr_Status IS NULL "
 	        + "AND e.applied_Location = :location "
+	        + "AND e.applied_branch = :branch "
 	        + "GROUP BY e.id, e.full_Name, e.email, e.job_Profile, e.mobile_No, "
 	        + "e.permanent_Address, e.gender, e.creation_Date", nativeQuery = true)
-	List<Object[]> getListOfEmployeeOnProfileScreening(@Param("location") String location);
+	List<Object[]> getListOfEmployeeOnProfileScreening(@Param("location") String location ,@Param("branch") String branch);
 
 	@Query("SELECT e.id, e.fullName, e.aadhaarNumber, e.email, e.creationDate, sh.status, sh.changesDateTime ,sh.hrName,sh.remarksOnEveryStages "
 			+ "FROM Employee e " + "JOIN StatusHistory sh ON e.id = sh.employee.id " + "WHERE e.id = :id")
@@ -42,9 +43,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query("SELECT e.id, e.fullName, e.email, e.gender, e.mobileNo, e.creationDate "
 			+ "FROM Employee e JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
-
-			+ "WHERE esd.hrStatus = 'Select' AND esd.processesStatus IS NULL AND e.appliedlocation = :location")
-	List<Object[]> getListOfEmployeeSechedulePage(@Param("location") String location);
+			+ "WHERE esd.hrStatus = 'Select' AND esd.processesStatus IS NULL AND e.appliedlocation = :location AND e.appliedBranch = :branch ")
+	List<Object[]> getListOfEmployeeSchedulePage(@Param("location") String location , @Param("branch") String branch );
 
 	@Query("SELECT e.id , e.fullName,e.email, e.jobProfile,creationDate  "
 			+ "FROM Employee e JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
@@ -54,13 +54,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(value = "SELECT e.id,e.fullName,e.email,e.mobileNo,e.gender,e.creationDate,e.jobProfile,esd.profileScreenRemarks,esd.remarksByHr,esd.remarksByManager,esd.grade,esd.companyType,esd.department,esd.lastInterviewAssign "
 			+ "FROM Employee e " + "JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
 			+ "WHERE esd.managerStatus = 'Select' AND e.appliedlocation = :location "
+			+ "AND e. appliedBranch = :branch "
 			+"AND NOT EXISTS (SELECT 1 FROM OurEmployees oe WHERE oe.employee.id = e.id)")
-	List<Object[]> getSelectedEmployeeDetails(@Param("location") String location);
+	List<Object[]> getSelectedEmployeeDetails(@Param("location") String location,@Param("branch") String branch);
 
 	@Query("SELECT e.id, e.fullName, e.email, e.gender, e.mobileNo, e.creationDate , esd.profileScreenRemarks "
 			+ "FROM Employee e JOIN EmployeeStatusDetails esd ON e.id = esd.employee.id "
-			+ "WHERE esd.hrStatus = 'Reject' AND e.appliedlocation = :location")
-	List<Object[]> getListOfProfileScreaningPage(@Param("location") String location);
+			+ "WHERE esd.hrStatus = 'Reject' AND e.appliedlocation = :location "
+			+ " AND e.appliedBranch = :branch ")
+	List<Object[]> getListOfProfileScreaningPage(@Param("location") String location ,@Param("branch") String branch);
 
 //	@Query("SELECT e.id ,e.fullName, e.email , esd.initialStatus ,esd.creationDate ,esd.hrStatus ,esd.managerStatus "
 //			+" esd.managerStatus, esd.lastInterviewAssign,esd.remarksByHr,esd.remarksByManager,esd.profileScreenRemarks "
@@ -109,10 +111,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		            "e.gender, eps.processes_status, e.creation_date " +
 		            "FROM employees e " +
 		            "JOIN employee_status_details eps ON eps.employee_id = e.id " +
-		            "WHERE eps.processes_status = :role AND e.applied_location = :location",
+		            "WHERE eps.processes_status = :role AND e.applied_location = :location AND e.applied_branch = :branch ",
 		    nativeQuery = true
 		)
-		List<Object[]> findEmployeesByRoleAndLocation(@Param("role") String role, @Param("location") String location);
+		List<Object[]> findEmployeesByRoleAndLocation(@Param("role") String role, @Param("location") String location, @Param("branch") String branch);
 		@Query(
 			    value = "SELECT vi.name " +
 			            "FROM candidates_entity ce " +

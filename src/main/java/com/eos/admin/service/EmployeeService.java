@@ -31,21 +31,21 @@ public interface EmployeeService {
 
 	boolean checkDuplicateAdhaarNo(String aadharNumber);
 
-	List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location);
+	List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location ,String branch);
 
 	void updateRemarks(Long employeeId, StatusRequestDTO statusRequestDTO, RemarksType remarksType);
 
 	List<EmployeeStatusHistroyDTO> getListOfStatusHistoryRecords(Long employeeId);
 
-	List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location);
+	List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location ,String branch);
 
 	List<RejectPageEmployeeDTO> getListOfEmployeeRejectedByManager(String location);
 
 	void assignInterviewProcessFromRejectPage(Long employeeId, StatusRequestDTO statusRequestDTO);
 
-	List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location);
+	List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location , String branch);
 
-	List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location);
+	List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location ,String branch);
 
 	List<EmployeeInformationDTO> getEmployeeInformation();
 
@@ -60,7 +60,7 @@ public interface EmployeeService {
 	List<ManagerPageResponseDTO> getScheduleInterviewManagerPage(String uniqueCodeProcess);
 
 
-	List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location);
+	List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location ,String branch);
 
 	EmployeeDto submitResponseForReScreeningProfile(Long employeeId, StatusRequestDTO statusRequestDTO);
 	

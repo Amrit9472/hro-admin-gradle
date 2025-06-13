@@ -44,4 +44,5 @@ public class EmployeeDto {
 	private Date creationDate;
 	private String lastInterviewAssin;
 	private String appliedLocation;
+	private String appliedBranch;
 }
