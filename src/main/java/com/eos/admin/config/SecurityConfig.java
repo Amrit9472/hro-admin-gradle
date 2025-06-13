@@ -28,7 +28,6 @@ import com.eos.admin.serviceImpl.VendorUserDetailsServiceImpl;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-	
 
 	private OurUserDetailsServiceImpl ourUserDetailsServiceImpl;
 	private VendorUserDetailsServiceImpl vendorUserDetailsService;
@@ -71,6 +70,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/training/**").hasAnyAuthority(ROLE_TRAINER, ROLE_ER)
 				.requestMatchers("/api/training-scores/**").hasAnyAuthority(ROLE_TRAINER, ROLE_ER)
 				.requestMatchers("/api/process/**").hasAnyAuthority(ROLE_ADMIN)
+				.requestMatchers("/api/trainer-master/**").hasAnyAuthority(ROLE_TRAINER, ROLE_ADMIN, ROLE_USER)
 				.anyRequest().authenticated())
 		.sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.authenticationProvider(authenticationProvider())

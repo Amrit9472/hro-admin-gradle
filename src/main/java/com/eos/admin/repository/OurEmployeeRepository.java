@@ -1,5 +1,6 @@
 package com.eos.admin.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,8 +24,11 @@ public interface OurEmployeeRepository extends JpaRepository<OurEmployees, Long>
 	        "FROM our_employee oe " +
 	        "JOIN employees e ON oe.employee_id = e.id " +
 	        "LEFT JOIN induction_attendance ia ON e.id = ia.employee_id " +
-	        "WHERE oe.process = :process AND ia.type = 'TRAINING'", 
+	        "WHERE oe.process = :process AND ia.type = 'INDUCTION'", 
 	        nativeQuery = true)
 	List<Object[]> findEmployeeDetailsByProcess(@Param("process") String process);
+	
+	@Query(value = "SELECT * FROM our_employee WHERE process = :process AND joining_date = :joiningDate", nativeQuery = true)
+	List<OurEmployees> findByDateAndProcess(@Param("process") String process, @Param("joiningDate") Date joiningDate);
 
 }
