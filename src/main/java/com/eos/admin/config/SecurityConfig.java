@@ -70,6 +70,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/training-batch/**").hasAnyAuthority(ROLE_TRAINER, ROLE_ER)
 				.requestMatchers("/api/training/**").hasAnyAuthority(ROLE_TRAINER, ROLE_ER)
 				.requestMatchers("/api/training-scores/**").hasAnyAuthority(ROLE_TRAINER, ROLE_ER)
+				.requestMatchers("/api/process/**").hasAnyAuthority(ROLE_ADMIN)
 				.anyRequest().authenticated())
 		.sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.authenticationProvider(authenticationProvider())

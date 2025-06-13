@@ -113,6 +113,9 @@ public class Employee {
 	@Column(name = "appliedLocation")
 	private String appliedlocation;
 
+	@Column(name = "appliedBranch")
+	private String appliedBranch;
+	
 	@PrePersist
 	protected void onCreate() {
 		creationDate = new Date();

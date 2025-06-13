@@ -23,13 +23,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.eos.admin.dto.EmployeeDetailsOnManagerPageDTO;
 import com.eos.admin.dto.EmployeeDto;
 import com.eos.admin.dto.EmployeeExcelReportDto;
 import com.eos.admin.dto.EmployeeExcelReportInSequenceDto;
 import com.eos.admin.dto.EmployeeInformationDTO;
 import com.eos.admin.dto.EmployeeStatusHistroyDTO;
-import com.eos.admin.dto.LanguageDTO;
 import com.eos.admin.dto.ManagerPageResponseDTO;
 import com.eos.admin.dto.ProfileScreanRejectedDTO;
 import com.eos.admin.dto.ProfileScreaningResponseDto;
@@ -47,7 +47,6 @@ import com.eos.admin.entity.StatusHistory;
 import com.eos.admin.enums.RemarksType;
 import com.eos.admin.exception.DuplicateRecordException;
 import com.eos.admin.exception.EntityNotFoundException;
-import com.eos.admin.exception.InvalidInputException;
 import com.eos.admin.exception.ResourceNotFoundException;
 import com.eos.admin.repository.EmployeeRepository;
 import com.eos.admin.repository.EmployeeStatusDetailsRepository;
@@ -58,8 +57,7 @@ import com.eos.admin.service.EmailService;
 import com.eos.admin.service.EmployeeService;
 import com.eos.admin.service.FileService;
 import com.eos.admin.service.StatusHistoryService;
-import jakarta.servlet.http.HttpServletResponse;
-import com.google.zxing.Result;
+
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -162,12 +160,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-
-	public List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location) {
+	public List<ProfileScreaningResponseDto> getListOfEmployeesOnProfileScreanig(String location , String branch) {
 		log.info("Entering getListOfEmployeesOnProfileScreaning method.");
 		List<ProfileScreaningResponseDto> employees = new ArrayList<>();
 		try {
-			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim());
+			List<Object[]> response = employeeRepository.getListOfEmployeeOnProfileScreening(location.trim(),branch.trim());
 			if (response == null || response.isEmpty()) {
 				log.warn("No employee data found for profile screening.");
 				return employees;
@@ -196,8 +193,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 					} else {
 						employee.setLanguages(new ArrayList<>()); // No languages available
 					}
-//					employee.setReadLanguages((List<String>) result[8]);
-//					employee.setWriteLanguages((List<String>) result[9]);
 					employees.add(employee);
 				} catch (NullPointerException e) {
 					log.error("Null value encountered while processing the employee data: " + e.getMessage());
@@ -408,11 +403,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location) {
+	public List<ScheduleInterviewPageRequestDTO> getListOfEmployeesOnScheduleInterviewPage(String location, String branch) {
 		// TODO Auto-generated method stub
 		log.info("Request for get list of Employee on schedule Interview page from Empoloyee serviceImp");
 		try {
-			List<Object[]> repositoryResponse = employeeRepository.getListOfEmployeeSechedulePage(location);
+			List<Object[]> repositoryResponse = employeeRepository.getListOfEmployeeSchedulePage(location, branch);
 			List<ScheduleInterviewPageRequestDTO> response = new ArrayList<>();
 			for (Object[] repositoryResponses : repositoryResponse) {
 				ScheduleInterviewPageRequestDTO scheduleInterviewPageRequestDTO = new ScheduleInterviewPageRequestDTO();
@@ -488,10 +483,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location) {
+	public List<SelectedEmployeeDTO> getAllSelectedInterviewList(String location,String branch) {
 		try {
 			log.info("Getting selected employee details from repository...");
-			List<Object[]> employeeObjects = employeeRepository.getSelectedEmployeeDetails(location);
+			List<Object[]> employeeObjects = employeeRepository.getSelectedEmployeeDetails(location,branch);
 
 			List<SelectedEmployeeDTO> selectedEmployees = new ArrayList<>();
 
@@ -536,10 +531,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location) {
+	public List<ProfileScreanRejectedDTO> getListOfProfileScreaningRejected(String location,String branch) {
 		try {
 			log.info("Fetching profile screening rejected employee data from repository...");
-			List<Object[]> repoResponse = employeeRepository.getListOfProfileScreaningPage(location);
+			List<Object[]> repoResponse = employeeRepository.getListOfProfileScreaningPage(location,branch);
 			List<ProfileScreanRejectedDTO> rejectedList = new ArrayList<>();
 
 			for (Object[] result : repoResponse) {
@@ -769,10 +764,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location) {
-		log.info("Fetching employees with role: {} and location: {}", role, location);
+	public List<EmployeeDetailsOnManagerPageDTO> getAllResponseValueOnProcessType(String role, String location ,String branch) {
+		log.info("Fetching employees with role: {} and location: {} and branch: {} ", role, location,branch);
 		try {
-			List<Object[]> employeeObjects = employeeRepository.findEmployeesByRoleAndLocation(role, location);
+			List<Object[]> employeeObjects = employeeRepository.findEmployeesByRoleAndLocation(role, location,branch);
 			List<EmployeeDetailsOnManagerPageDTO> dtoList = new ArrayList<>();
 
 			for (Object[] obj : employeeObjects) {
