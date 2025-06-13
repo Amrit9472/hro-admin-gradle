@@ -66,6 +66,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/vendorInfo/**").hasAnyAuthority(ROLE_VENDOR,ROLE_ADMIN)
 				.requestMatchers("/api/attendance/**").hasAnyAuthority(ROLE_ER)
 				.requestMatchers("/api/training-attendance/**").hasAnyAuthority(ROLE_TRAINER)
+				.requestMatchers("/api/process/**").hasAnyAuthority(ROLE_ADMIN)
 				.anyRequest().authenticated())
 		.sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.authenticationProvider(authenticationProvider())

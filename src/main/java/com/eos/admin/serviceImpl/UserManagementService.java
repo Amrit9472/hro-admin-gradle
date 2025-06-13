@@ -56,6 +56,7 @@ public class UserManagementService {
 			OurUsers ourUsers = new OurUsers();
 			ourUsers.setEmail(email);
 			ourUsers.setCity(registrationRequest.getCity());
+			ourUsers.setBranch(registrationRequest.getBranch());
 			ourUsers.setRole(registrationRequest.getRole());
 			ourUsers.setName(formattedString(registrationRequest.getName()));
 			ourUsers.setOfficeEmail(registrationRequest.getOfficeEmail());
@@ -102,6 +103,7 @@ public class UserManagementService {
 			response.setEmail(user.getEmail());
 			response.setRefreshToken(refreshToken);
 			response.setCity(user.getCity());
+			response.setBranch(user.getBranch());
 			response.setExpirationTime("24Hrs");
 			response.setMessage("SuccessFull login ");
 			response.setUniqueCode(user.getUniqueCode());

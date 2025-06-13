@@ -32,4 +32,5 @@ public class ReqRes {
 	private List<OurUsers> ourUserList;
 	private String address;
 	private String officeEmail;
+	private String branch;
 }

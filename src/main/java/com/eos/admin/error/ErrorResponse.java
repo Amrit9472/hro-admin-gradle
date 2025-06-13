@@ -1,12 +1,32 @@
 package com.eos.admin.error;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class ErrorResponse {
+	
+	
     private String message;
-
-    public ErrorResponse(String message) {
+    private int status;
+    private String error;
+    private LocalDateTime timestamp;
+    private String path;
+    
+    public ErrorResponse(String message, int status, String error, String path) {
         this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
+        this.status = status;
+        this.error = error;
+        this.timestamp = LocalDateTime.now();
+        this.path = path;
     }
 }

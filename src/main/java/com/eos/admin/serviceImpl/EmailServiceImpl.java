@@ -167,17 +167,6 @@ public class EmailServiceImpl implements EmailService {
 		        helper.setTo(emailList.toArray(new String[0]));
 		        helper.setSubject("Interview Scheduled – Candidate Details for Your Action");
 
-//		        String htmlContent = "<p>Dear Manager,</p>"
-//		                + "<p>We have scheduled an interview and request your support in completing the process as planned. Please find the candidate details below:</p>"
-//		                + "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse;'>"
-//		                + "<tr><th>Employee Name</th><th>Qualification</th></tr>"
-//		                + "<tr><td>" + employeeStatusDetails.getEmployee().getFullName()+ "</td>"
-////		                + "<td>" + employeeStatusDetails.getEmployee().getJobProfile() + "</td>"
-//		                + "<td>" + employeeStatusDetails.getEmployee().getQualification()+ "</td></tr>"
-//		                + "</table>"
-//		                + "<p>Click the link below to check more details:</p>"
-//		                + "<p><a href='http://localhost:5173/' target='_blank'>Click here to check</a></p>"
-//		                + "<p>Best regards,<br>HR Team</p>";
 		        String htmlContent = "<p>Dear Manager,</p>"
 		                + "<p>We have scheduled an interview and request your support in completing the process as planned. Please find the candidate details below:</p>"
 		                + "<p><strong>Candidate Name:</strong> " + employeeStatusDetails.getEmployee().getFullName() + "<br>"
